@@ -10,13 +10,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import threading
+from oslo_config import cfg
+from oslo_db import options
 
-import pbr.version
+from oasis.common import paths
 
 
-__version__ = pbr.version.VersionInfo(
-    'oasis').version_string()
+sql_opts = [
+    cfg.StrOpt('mysql_engine',
+               default='InnoDB',
+               help='MySQL engine to use.')
+]
 
-# Make a project global TLS trace storage repository
-TLS = threading.local()
+_DEFAULT_SQL_CONNECTION = 'sqlite:///' + paths.state_path_def('oasis.sqlite')
+
+
+cfg.CONF.register_opts(sql_opts, 'database')
+options.set_defaults(cfg.CONF, _DEFAULT_SQL_CONNECTION, 'oasis.sqlite')

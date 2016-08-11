@@ -10,13 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import threading
-
 import pbr.version
 
 
-__version__ = pbr.version.VersionInfo(
-    'oasis').version_string()
-
-# Make a project global TLS trace storage repository
-TLS = threading.local()
+version_info = pbr.version.VersionInfo('oasis')
+version_string = version_info.version_string
