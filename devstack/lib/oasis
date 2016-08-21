@@ -1,0 +1,328 @@
+#!/bin/bash
+#
+# lib/oasis
+# Functions to control the configuration and operation of the **oasis** service
+
+# Dependencies:
+#
+# - ``functions`` file
+# - ``DEST``, ``DATA_DIR``, ``STACK_USER`` must be defined
+# - ``SERVICE_{TENANT_NAME|PASSWORD}`` must be defined
+
+# ``stack.sh`` calls the entry points in this order:
+#
+# - install_oasis
+# - configure_oasis
+# - create_oasis_conf
+# - init_oasis
+# - oasis_register_image
+# - start_oasis
+# - configure_iptables
+# - stop_oasis
+# - cleanup_oasis
+
+# Save trace setting
+XTRACE=$(set +o | grep xtrace)
+set +o xtrace
+
+
+# Defaults
+# --------
+
+# Set up default directories
+OASIS_REPO=${OASIS_REPO:-${GIT_BASE}/openstack/oasis.git}
+OASIS_BRANCH=${OASIS_BRANCH:-master}
+OASIS_DIR=$DEST/oasis
+
+GITREPO["python-oasisclient"]=${OASISCLIENT_REPO:-${GIT_BASE}/openstack/python-oasisclient.git}
+GITBRANCH["python-oasisclient"]=${OASISCLIENT_BRANCH:-master}
+GITDIR["python-oasisclient"]=$DEST/python-oasisclient
+
+OASIS_STATE_PATH=${OASIS_STATE_PATH:=$DATA_DIR/oasis}
+OASIS_AUTH_CACHE_DIR=${OASIS_AUTH_CACHE_DIR:-/var/cache/oasis}
+
+OASIS_CONF_DIR=/etc/oasis
+OASIS_CONF=$OASIS_CONF_DIR/oasis.conf
+OASIS_POLICY_JSON=$OASIS_CONF_DIR/policy.json
+OASIS_API_PASTE=$OASIS_CONF_DIR/api-paste.ini
+
+if is_ssl_enabled_service "oasis" || is_service_enabled tls-proxy; then
+    OASIS_SERVICE_PROTOCOL="https"
+fi
+
+# Public facing bits
+OASIS_SERVICE_HOST=${OASIS_SERVICE_HOST:-$HOST_IP}
+OASIS_SERVICE_PORT=${OASIS_SERVICE_PORT:-9417}
+OASIS_SERVICE_PORT_INT=${OASIS_SERVICE_PORT_INT:-19417}
+OASIS_SERVICE_PROTOCOL=${OASIS_SERVICE_PROTOCOL:-$SERVICE_PROTOCOL}
+
+OASIS_TRUSTEE_DOMAIN_ADMIN_PASSWORD=${OASIS_TRUSTEE_DOMAIN_ADMIN_PASSWORD:-secret}
+
+# Support entry points installation of console scripts
+if [[ -d $OASIS_DIR/bin ]]; then
+    OASIS_BIN_DIR=$OASIS_DIR/bin
+else
+    OASIS_BIN_DIR=$(get_python_exec_prefix)
+fi
+
+if is_service_enabled ir-api; then
+    OASIS_CONFIGURE_IPTABLES=${OASIS_CONFIGURE_IPTABLES:-False}
+fi
+
+# Functions
+# ---------
+
+# Test if any oasis services are enabled
+# is_oasis_enabled
+function is_oasis_enabled {
+    [[ ,${ENABLED_SERVICES} =~ ,"m-" ]] && return 0
+    return 1
+}
+# cleanup_oasis() - Remove residual data files, anything left over from previous
+# runs that a clean run would need to clean up
+function cleanup_oasis {
+    sudo rm -rf $OASIS_STATE_PATH $OASIS_AUTH_CACHE_DIR
+}
+
+# configure_oasis() - Set config files, create data dirs, etc
+function configure_oasis {
+    # Put config files in ``/etc/oasis`` for everyone to find
+    if [[ ! -d $OASIS_CONF_DIR ]]; then
+        sudo mkdir -p $OASIS_CONF_DIR
+        sudo chown $STACK_USER $OASIS_CONF_DIR
+    fi
+
+    install_default_policy oasis
+    # Rebuild the config file from scratch
+    create_oasis_conf
+
+    create_api_paste_conf
+
+    update_heat_policy
+}
+
+# create_oasis_accounts() - Set up common required oasis accounts
+#
+# Project              User         Roles
+# ------------------------------------------------------------------
+# SERVICE_PROJECT_NAME  oasis         service
+function create_oasis_accounts {
+
+    create_service_user "oasis" "admin"
+
+    if [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
+
+        local oasis_service=$(get_or_create_service "oasis" \
+            "container" "Magnum Container Service")
+        get_or_create_endpoint $oasis_service \
+            "$REGION_NAME" \
+            "$OASIS_SERVICE_PROTOCOL://$OASIS_SERVICE_HOST:$OASIS_SERVICE_PORT/v1" \
+            "$OASIS_SERVICE_PROTOCOL://$OASIS_SERVICE_HOST:$OASIS_SERVICE_PORT/v1" \
+            "$OASIS_SERVICE_PROTOCOL://$OASIS_SERVICE_HOST:$OASIS_SERVICE_PORT/v1"
+    fi
+
+}
+
+# create_oasis_conf() - Create a new oasis.conf file
+function create_oasis_conf {
+
+    # (Re)create ``oasis.conf``
+    rm -f $OASIS_CONF
+    iniset $OASIS_CONF DEFAULT debug "$ENABLE_DEBUG_LOG_LEVEL"
+    iniset $OASIS_CONF oslo_messaging_rabbit rabbit_userid $RABBIT_USERID
+    iniset $OASIS_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
+    iniset $OASIS_CONF oslo_messaging_rabbit rabbit_host $RABBIT_HOST
+
+    iniset $OASIS_CONF database connection `database_connection_url oasis`
+    iniset $OASIS_CONF api host "$OASIS_SERVICE_HOST"
+    iniset $OASIS_CONF api port "$OASIS_SERVICE_PORT"
+
+    iniset $OASIS_CONF oslo_policy policy_file $OASIS_POLICY_JSON
+
+    iniset $OASIS_CONF keystone_authtoken admin_user oasis
+    iniset $OASIS_CONF keystone_authtoken admin_password $SERVICE_PASSWORD
+    iniset $OASIS_CONF keystone_authtoken admin_tenant_name $SERVICE_PROJECT_NAME
+
+    configure_auth_token_middleware $OASIS_CONF oasis $OASIS_AUTH_CACHE_DIR
+
+    iniset $OASIS_CONF keystone_authtoken auth_uri $KEYSTONE_SERVICE_URI/v3
+    iniset $OASIS_CONF keystone_authtoken auth_version v3
+
+    if is_fedora || is_suse; then
+        # oasis defaults to /usr/local/bin, but fedora and suse pip like to
+        # install things in /usr/bin
+        iniset $OASIS_CONF DEFAULT bindir "/usr/bin"
+    fi
+
+    if [ -n "$OASIS_STATE_PATH" ]; then
+        iniset $OASIS_CONF DEFAULT state_path "$OASIS_STATE_PATH"
+        iniset $OASIS_CONF oslo_concurrency lock_path "$OASIS_STATE_PATH"
+    fi
+
+    if [ "$SYSLOG" != "False" ]; then
+        iniset $OASIS_CONF DEFAULT use_syslog "True"
+    fi
+
+    # Format logging
+    if [ "$LOG_COLOR" == "True" ] && [ "$SYSLOG" == "False" ]; then
+        setup_colorized_logging $OASIS_CONF DEFAULT
+    else
+        # Show user_name and project_name instead of user_id and project_id
+        iniset $OASIS_CONF DEFAULT logging_context_format_string "%(asctime)s.%(msecs)03d %(levelname)s %(name)s [%(request_id)s %(user_name)s %(project_name)s] %(instance)s%(message)s"
+    fi
+
+    # Register SSL certificates if provided
+    if is_ssl_enabled_service oasis; then
+        ensure_certificates OASIS
+
+        iniset $OASIS_CONF DEFAULT ssl_cert_file "$OASIS_SSL_CERT"
+        iniset $OASIS_CONF DEFAULT ssl_key_file "$OASIS_SSL_KEY"
+
+        iniset $OASIS_CONF DEFAULT enabled_ssl_apis "$OASIS_ENABLED_APIS"
+    fi
+
+    if is_service_enabled ceilometer; then
+        iniset $OASIS_CONF oslo_messaging_notifications driver "messaging"
+    fi
+
+    if is_service_enabled barbican; then
+        iniset $OASIS_CONF certificates cert_manager_type "barbican"
+    else
+        OASIS_LOCAL_CERT_DIR=${OASIS_LOCAL_CERT_DIR:-/var/lib/oasis/certificates/}
+        if [[ ! -d $OASIS_LOCAL_CERT_DIR ]]; then
+            sudo mkdir -p $OASIS_LOCAL_CERT_DIR
+            sudo chown $STACK_USER $OASIS_LOCAL_CERT_DIR
+        fi
+        iniset $OASIS_CONF certificates storage_path "$OASIS_LOCAL_CERT_DIR"
+        iniset $OASIS_CONF certificates cert_manager_type "local"
+    fi
+
+    trustee_domain_id=$(get_or_create_domain oasis 'Owns users and projects created by oasis')
+    trustee_domain_admin_id=$(get_or_create_user trustee_domain_admin $OASIS_TRUSTEE_DOMAIN_ADMIN_PASSWORD $trustee_domain_id)
+    openstack --os-auth-url $KEYSTONE_SERVICE_URI_V3 \
+              --os-identity-api-version 3 role add \
+              --user $trustee_domain_admin_id --domain $trustee_domain_id \
+              admin
+    iniset $OASIS_CONF trust trustee_domain_id $trustee_domain_id
+    iniset $OASIS_CONF trust trustee_domain_admin_id $trustee_domain_admin_id
+    iniset $OASIS_CONF trust trustee_domain_admin_password $OASIS_TRUSTEE_DOMAIN_ADMIN_PASSWORD
+    iniset $OASIS_CONF cinder_client region_name $REGION_NAME
+}
+
+function create_api_paste_conf {
+    # copy api_paste.ini
+    cp $OASIS_DIR/etc/oasis/api-paste.ini $OASIS_API_PASTE
+}
+
+function update_heat_policy {
+    # enable stacks globel_index search so that oasis can use
+    # list(global_tenant=True)
+    sed -i 's/\("stacks:global_index":\).*$/\1 "role:admin",/' $HEAT_CONF_DIR/policy.json
+}
+
+# create_oasis_cache_dir() - Part of the init_oasis() process
+function create_oasis_cache_dir {
+    # Create cache dir
+    sudo mkdir -p $OASIS_AUTH_CACHE_DIR
+    sudo chown $STACK_USER $OASIS_AUTH_CACHE_DIR
+    rm -f $OASIS_AUTH_CACHE_DIR/*
+}
+
+
+# init_oasis() - Initialize databases, etc.
+function init_oasis {
+    # Only do this step once on the API node for an entire cluster.
+    if is_service_enabled $DATABASE_BACKENDS && is_service_enabled m-api; then
+        # (Re)create oasis database
+        recreate_database oasis
+
+        # Migrate oasis database
+        $OASIS_BIN_DIR/oasis-db-manage upgrade
+    fi
+    create_oasis_cache_dir
+}
+
+# oasis_register_image - Register heat image for oasis with property os_distro
+function oasis_register_image {
+    local oasis_image_property="--property os_distro="
+
+    local atomic="$(echo $OASIS_GUEST_IMAGE_URL | grep -o 'atomic' || true;)"
+    if [ ! -z $atomic ]; then
+        oasis_image_property=$oasis_image_property"fedora-atomic"
+    fi
+    local ubuntu="$(echo $OASIS_GUEST_IMAGE_URL | grep -o "ubuntu" || ture;)"
+    if [ ! -z $ubuntu ]; then
+        oasis_image_property=$oasis_image_property"ubuntu"
+    fi
+
+    openstack --os-url $GLANCE_SERVICE_PROTOCOL://$GLANCE_HOSTPORT --os-image-api-version 1 image set $(basename "$OASIS_GUEST_IMAGE_URL" ".qcow2") $oasis_image_property
+}
+
+# install_oasisclient() - Collect source and prepare
+function install_oasisclient {
+    if use_library_from_git "python-oasisclient"; then
+        git_clone_by_name "python-oasisclient"
+        setup_dev_lib "python-oasisclient"
+    fi
+}
+
+# install_oasis() - Collect source and prepare
+function install_oasis {
+    git_clone $OASIS_REPO $OASIS_DIR $OASIS_BRANCH
+    setup_develop $OASIS_DIR
+}
+
+# start_oasis_api() - Start the API process ahead of other things
+function start_oasis_api {
+    # Get right service port for testing
+    local service_port=$OASIS_SERVICE_PORT
+    local service_protocol=$OASIS_SERVICE_PROTOCOL
+    if is_service_enabled tls-proxy; then
+        service_port=$OASIS_SERVICE_PORT_INT
+        service_protocol="http"
+    fi
+
+    run_process m-api "$OASIS_BIN_DIR/oasis-api"
+    echo "Waiting for oasis-api to start..."
+    if ! wait_for_service $SERVICE_TIMEOUT $service_protocol://$OASIS_SERVICE_HOST:$service_port; then
+        die $LINENO "oasis-api did not start"
+    fi
+
+    # Start proxies if enabled
+    if is_service_enabled tls-proxy; then
+        start_tls_proxy '*' $OASIS_SERVICE_PORT $OASIS_SERVICE_HOST $OASIS_SERVICE_PORT_INT &
+        start_tls_proxy '*' $EC2_SERVICE_PORT $OASIS_SERVICE_HOST $EC2_SERVICE_PORT_INT &
+    fi
+}
+
+
+# configure_iptables() - Configure the IP table rules for Magnum
+function configure_iptables {
+    if [ "$OASIS_CONFIGURE_IPTABLES" != "False" ]; then
+        ROUTE_TO_INTERNET=$(ip route get 8.8.8.8)
+        OBOUND_DEV=$(echo ${ROUTE_TO_INTERNET#*dev} | awk '{print $1}')
+        sudo iptables -t nat -A POSTROUTING -o $OBOUND_DEV -j MASQUERADE
+        # bay nodes will access m-api (port $OASIS_SERVICE_PORT) to get CA certificate.
+        sudo iptables -I INPUT -d $HOST_IP -p tcp --dport $OASIS_SERVICE_PORT -j ACCEPT || true
+    fi
+}
+
+
+# start_oasis() - Start running processes, including screen
+function start_oasis {
+
+    # ``run_process`` checks ``is_service_enabled``, it is not needed here
+    start_oasis_api
+    run_process m-cond "$OASIS_BIN_DIR/oasis-conductor"
+}
+
+# stop_oasis() - Stop running processes (non-screen)
+function stop_oasis {
+    for serv in m-api m-cond; do
+        stop_process $serv
+    done
+}
+
+
+# Restore xtrace
+$XTRACE

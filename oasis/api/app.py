@@ -24,11 +24,11 @@ from magnum.i18n import _
 # Register options for the service
 API_SERVICE_OPTS = [
     cfg.PortOpt('port',
-                default=9511,
-                help='The port for the Magnum API server.'),
+                default=9417,
+                help='The port for the Oasis API server.'),
     cfg.IPOpt('host',
               default='127.0.0.1',
-              help='The listen IP for the Magnum API server.'),
+              help='The listen IP for the Oasis API server.'),
     cfg.IntOpt('max_limit',
                default=1000,
                help='The maximum number of items returned in a single '
