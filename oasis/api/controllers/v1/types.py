@@ -17,9 +17,9 @@ from oslo_utils import strutils
 import wsme
 from wsme import types as wtypes
 
-from magnum.common import exception
-from magnum.common import utils
-from magnum.i18n import _
+from oasis.common import exception
+from oasis.common import utils
+from oasis.i18n import _
 
 
 class MacAddressType(wtypes.UserType):

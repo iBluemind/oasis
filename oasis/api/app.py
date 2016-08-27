@@ -16,10 +16,10 @@ from oslo_log import log
 from paste import deploy
 import pecan
 
-from magnum.api import config as api_config
-from magnum.api import middleware
-from magnum.common import config as common_config
-from magnum.i18n import _
+from oasis.api import config as api_config
+from oasis.api import middleware
+from oasis.common import config as common_config
+from oasis.i18n import _
 
 # Register options for the service
 API_SERVICE_OPTS = [
