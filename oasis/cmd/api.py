@@ -10,7 +10,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""Starter script for the Magnum API service."""
+"""Starter script for the Oasis API service."""
 
 import os
 import sys
@@ -21,6 +21,7 @@ from oslo_log import log as logging
 
 from oasis.api import app as api_app
 from oasis.common import service
+from oasis.i18n import _LI
 from oasis import version
 
 
@@ -28,7 +29,11 @@ LOG = logging.getLogger(__name__)
 
 
 def main():
-    service.prepare_service(sys.argv)
+
+    temp = ["/etc/oasis/oasis.conf", ]
+    service.prepare_service(temp)
+
+    # service.prepare_service(sys.argv)
     app = api_app.load_app()
 
     # Create the WSGI server and start it

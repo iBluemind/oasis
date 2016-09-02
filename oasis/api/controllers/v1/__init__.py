@@ -13,7 +13,7 @@
 #    under the License.
 
 """
-Version 1 of the Magnum API
+Version 1 of the Oasis API
 
 NOTE: IN PROGRESS AND NOT FULLY IMPLEMENTED.
 """

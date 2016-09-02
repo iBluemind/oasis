@@ -21,7 +21,7 @@ Based on pecan.middleware.errordocument
 import json
 import six
 
-from magnum.i18n import _
+from oasis.i18n import _
 
 
 class ParsableErrorMiddleware(object):
