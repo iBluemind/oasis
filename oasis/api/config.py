@@ -16,7 +16,7 @@ from oasis.api import hooks
 app = {
     'root': 'oasis.api.controllers.root.RootController',
     'modules': ['oasis.api'],
-    'debug': False,
+    'debug': True,
     'hooks': [
         hooks.ContextHook(),
         hooks.RPCHook(),

@@ -63,7 +63,7 @@ class Function(base.APIBase):
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated bay links"""
 
-    stack_id = wsme.wsattr(wtypes.text, readonly=True)
+    stack_id = wsme.wsattr(wtypes.text, readonly=False)
     """Stack id of the heat stack"""
 
     project_id = wsme.wsattr(wtypes.text, readonly=True)
@@ -107,23 +107,21 @@ class Function(base.APIBase):
         return function
 
     @classmethod
-    def convert_with_links(cls, rpc_bay, expand=True):
-        function = Function(**rpc_bay.as_dict())
+    def convert_with_links(cls, rpc_function, expand=True):
+        function = Function(**rpc_function.as_dict())
         return cls._convert_with_links(function, pecan.request.host_url, expand)
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
+        sample = cls(id='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
                      name='example',
-                     baymodel_id='4a96ac4b-2447-43f1-8ca6-9fd6f36d146d',
-                     node_count=2,
-                     master_count=1,
-                     bay_create_timeout=15,
+                     project_id='4a96ac4b-2447-43f1-8ca6-9fd6f36d146d',
+                     user_id=2,
+                     function_create_timeout=15,
                      stack_id='49dc23f5-ffc9-40c3-9d34-7be7f9e34d63',
                      status=fields.FunctionStatus.CREATE_COMPLETE,
                      status_reason="CREATE completed successfully",
-                     api_address='172.24.4.3',
-                     node_addresses=['172.24.4.4', '172.24.4.5'],
+                     body='def hello(): print \'hello\'',
                      created_at=timeutils.utcnow(),
                      updated_at=timeutils.utcnow())
         return cls._convert_with_links(sample, 'http://localhost:9417', expand)
@@ -250,7 +248,7 @@ class FunctionsController(rest.RestController):
         policy.enforce(context, 'function:create',
                        action='function:create')
         function_dict = function.as_dict()
-        function_dict['stack_id'] = context.project_id
+        # function_dict['stack_id'] = context.stack_id
         function_dict['project_id'] = context.project_id
         function_dict['user_id'] = context.user_id
         if function_dict.get('name') is None:
@@ -258,13 +256,20 @@ class FunctionsController(rest.RestController):
         if function_dict.get('body') is None:
             function_dict['body'] = None
 
-        function_bay = objects.Function(context, **function_dict)
-        res_function = pecan.request.rpcapi.bay_create(function_bay,
-                                                  function.bay_create_timeout)
+        function = objects.Function(context, **function_dict)
 
+        function.create()
         # Set the HTTP Location Header
-        pecan.response.location = link.build_url('functions', res_function.uuid)
-        return Function.convert_with_links(res_function)
+        pecan.response.location = link.build_url('functions',
+                                                 function.id)
+        return Function.convert_with_links(function)
+
+        # res_function = pecan.request.rpcapi.function_create(function,
+        #                                           function.function_create_timeout)
+
+        # # Set the HTTP Location Header
+        # pecan.response.location = link.build_url('functions', res_function.uuid)
+        # return Function.convert_with_links(res_function)
 
     @wsme.validate(types.uuid, [FunctionPatchType])
     @expose.expose(Function, types.uuid_or_name, body=[FunctionPatchType])

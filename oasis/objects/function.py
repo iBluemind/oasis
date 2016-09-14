@@ -31,16 +31,14 @@ class Function(base.OasisPersistentObject, base.OasisObject,
     dbapi = dbapi.get_instance()
 
     fields = {
-        'id': fields.IntegerField(),
+        'id': fields.StringField(),
         'name': fields.StringField(nullable=True),
         'project_id': fields.StringField(nullable=True),
         'user_id': fields.StringField(nullable=True),
         'stack_id': fields.StringField(nullable=True),
         'status': m_fields.FunctionStatusField(nullable=True),
         'status_reason': fields.StringField(nullable=True),
-        'body': fields.IntegerField(nullable=True),
-        'ca_cert_ref': fields.StringField(nullable=True),
-        'oasis_cert_ref': fields.StringField(nullable=True),
+        'body': fields.StringField(nullable=True),
         'trust_id': fields.StringField(nullable=True),
         'trustee_username': fields.StringField(nullable=True),
         'trustee_password': fields.StringField(nullable=True),
@@ -51,13 +49,13 @@ class Function(base.OasisPersistentObject, base.OasisObject,
     def _from_db_object(function, db_function):
         """Converts a database entity to a formal object."""
         for field in function.fields:
-            if field != 'baymodel':
+            if field != 'function':
                 function[field] = db_function[field]
 
         # Note(eliqiao): The following line needs to be placed outside the
-        # loop because there is a dependency from baymodel to baymodel_id.
-        # The baymodel_id must be populated first in the loop before it can be
-        # used to find the baymodel.
+        # loop because there is a dependency from function to function_id.
+        # The function_id must be populated first in the loop before it can be
+        # used to find the function.
         function.obj_reset_changes()
         return function
 
@@ -68,11 +66,11 @@ class Function(base.OasisPersistentObject, base.OasisObject,
 
     @base.remotable_classmethod
     def get(cls, context, function_id):
-        """Find a bay based on its id or uuid and return a Bay object.
+        """Find a function based on its id or uuid and return a Function object.
 
-        :param function_id: the id *or* uuid of a bay.
+        :param function_id: the id *or* uuid of a function.
         :param context: Security context
-        :returns: a :class:`Bay` object.
+        :returns: a :class:`Function` object.
         """
         if utils.is_int_like(function_id):
             return cls.get_by_id(context, function_id)
@@ -83,58 +81,58 @@ class Function(base.OasisPersistentObject, base.OasisObject,
 
     @base.remotable_classmethod
     def get_by_id(cls, context, function_id):
-        """Find a bay based on its integer id and return a Bay object.
+        """Find a function based on its integer id and return a Function object.
 
-        :param bay_id: the id of a bay.
+        :param function_id: the id of a function.
         :param context: Security context
-        :returns: a :class:`Bay` object.
+        :returns: a :class:`Function` object.
         """
-        db_bay = cls.dbapi.get_bay_by_id(context, function_id)
-        bay = Function._from_db_object(cls(context), db_bay)
-        return bay
+        db_function = cls.dbapi.get_function_by_id(context, function_id)
+        function = Function._from_db_object(cls(context), db_function)
+        return function
 
     @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
-        """Find a bay based on uuid and return a :class:`Bay` object.
+        """Find a function based on uuid and return a :class:`Function` object.
 
-        :param uuid: the uuid of a bay.
+        :param uuid: the uuid of a function.
         :param context: Security context
-        :returns: a :class:`Bay` object.
+        :returns: a :class:`Function` object.
         """
-        db_bay = cls.dbapi.get_bay_by_uuid(context, uuid)
-        bay = Function._from_db_object(cls(context), db_bay)
-        return bay
+        db_function = cls.dbapi.get_function_by_uuid(context, uuid)
+        function = Function._from_db_object(cls(context), db_function)
+        return function
 
     @base.remotable_classmethod
     def get_by_name(cls, context, name):
-        """Find a bay based on name and return a Bay object.
+        """Find a function based on name and return a Function object.
 
-        :param name: the logical name of a bay.
+        :param name: the logical name of a function.
         :param context: Security context
-        :returns: a :class:`Bay` object.
+        :returns: a :class:`Function` object.
         """
-        db_bay = cls.dbapi.get_bay_by_name(context, name)
-        bay = Function._from_db_object(cls(context), db_bay)
-        return bay
+        db_function = cls.dbapi.get_function_by_name(context, name)
+        function = Function._from_db_object(cls(context), db_function)
+        return function
 
     @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None,
              sort_key=None, sort_dir=None, filters=None):
-        """Return a list of Bay objects.
+        """Return a list of Function objects.
 
         :param context: Security context.
         :param limit: maximum number of resources to return in a single result.
         :param marker: pagination marker for large data sets.
         :param sort_key: column to sort results by.
         :param sort_dir: direction to sort. "asc" or "desc".
-        :param filters: filter dict, can includes 'baymodel_id', 'name',
+        :param filters: filter dict, can includes 'function_id', 'name',
                         'node_count', 'stack_id', 'api_address',
                         'node_addresses', 'project_id', 'user_id',
                         'status'(should be a status list), 'master_count'.
-        :returns: a list of :class:`Bay` object.
+        :returns: a list of :class:`Function` object.
 
         """
-        db_functions = cls.dbapi.get_bay_list(context, limit=limit,
+        db_functions = cls.dbapi.get_function_list(context, limit=limit,
                                          marker=marker,
                                          sort_key=sort_key,
                                          sort_dir=sort_dir,
@@ -143,37 +141,37 @@ class Function(base.OasisPersistentObject, base.OasisObject,
 
     @base.remotable
     def create(self, context=None):
-        """Create a Bay record in the DB.
+        """Create a Function record in the DB.
 
         :param context: Security context. NOTE: This should only
                         be used internally by the indirection_api.
                         Unfortunately, RPC requires context as the first
                         argument, even though we don't use it.
                         A context should be set when instantiating the
-                        object, e.g.: Bay(context)
+                        object, e.g.: Function(context)
 
         """
         values = self.obj_get_changes()
-        db_bay = self.dbapi.create_bay(values)
-        self._from_db_object(self, db_bay)
+        db_function = self.dbapi.create_function(values)
+        self._from_db_object(self, db_function)
 
     @base.remotable
     def destroy(self, context=None):
-        """Delete the Bay from the DB.
+        """Delete the Function from the DB.
 
         :param context: Security context. NOTE: This should only
                         be used internally by the indirection_api.
                         Unfortunately, RPC requires context as the first
                         argument, even though we don't use it.
                         A context should be set when instantiating the
-                        object, e.g.: Bay(context)
+                        object, e.g.: Function(context)
         """
-        self.dbapi.destroy_bay(self.uuid)
+        self.dbapi.destroy_function(self.uuid)
         self.obj_reset_changes()
 
     @base.remotable
     def save(self, context=None):
-        """Save updates to this Bay.
+        """Save updates to this Function.
 
         Updates will be made column by column based on the result
         of self.what_changed().
@@ -183,27 +181,27 @@ class Function(base.OasisPersistentObject, base.OasisObject,
                         Unfortunately, RPC requires context as the first
                         argument, even though we don't use it.
                         A context should be set when instantiating the
-                        object, e.g.: Bay(context)
+                        object, e.g.: Function(context)
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_bay(self.uuid, updates)
+        self.dbapi.update_function(self.uuid, updates)
 
         self.obj_reset_changes()
 
     @base.remotable
     def refresh(self, context=None):
-        """Loads updates for this Bay.
+        """Loads updates for this Function.
 
-        Loads a bay with the same uuid from the database and
+        Loads a function with the same uuid from the database and
         checks for updated attributes. Updates are applied from
-        the loaded bay column by column, if there are any updates.
+        the loaded function column by column, if there are any updates.
 
         :param context: Security context. NOTE: This should only
                         be used internally by the indirection_api.
                         Unfortunately, RPC requires context as the first
                         argument, even though we don't use it.
                         A context should be set when instantiating the
-                        object, e.g.: Bay(context)
+                        object, e.g.: Function(context)
         """
         current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
         for field in self.fields:

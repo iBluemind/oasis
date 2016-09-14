@@ -29,9 +29,11 @@ from sqlalchemy import schema
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator, TEXT
+from oasis.common import config
 
 
 def table_args():
+    # config.parse_args(["/etc/oasis/oasis.conf",])
     engine_name = urlparse.urlparse(cfg.CONF.database.connection).scheme
     if engine_name == 'mysql':
         return {'mysql_engine': cfg.CONF.database.mysql_engine,
@@ -140,7 +142,7 @@ class Policy(Base, TimestampMixin):
 class Node(Base, TimestampMixin):
     """Represents a Node."""
 
-    __tablename__ = 'container'
+    __tablename__ = 'node'
     __table_args__ = (
         table_args()
     )
@@ -152,7 +154,6 @@ class Node(Base, TimestampMixin):
     nodepool_id = Column(String(36))
     status = Column(String(20))
     memory = Column(String(255))
-    environment = Column(JSONEncodedDict)
 
 
 class NodePool(Base, TimestampMixin):

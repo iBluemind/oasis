@@ -77,5 +77,5 @@ class ContainerStatusField(fields.BaseEnumField):
     AUTO_TYPE = ContainerStatus()
 
 
-class BayTypeField(fields.BaseEnumField):
+class FunctionTypeField(fields.BaseEnumField):
     AUTO_TYPE = FunctionType()
