@@ -112,11 +112,12 @@ class Function(Base, TimestampMixin):
     )
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
     project_id = Column(String(255))
-    user_id = Column(String(255))
     stack_id = Column(String(255))
+    user_id = Column(String(255))
     status = Column(String(20))
     status_reason = Column(Text)
     name = Column(String(255))
+    desc = Column(Text)
     body = Column(Text)
     trust_id = Column(String(255))
     trustee_username = Column(String(255))
@@ -124,36 +125,70 @@ class Function(Base, TimestampMixin):
     trustee_password = Column(String(255))
 
 
-class Policy(Base, TimestampMixin):
-    """Represents a Policy."""
+class Endpoint(Base, TimestampMixin):
 
-    __tablename__ = 'policy'
+    __tablename__ = 'endpoint'
     __table_args__ = (
         table_args()
     )
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
-    project_id = Column(String(255))
-    user_id = Column(String(255))
-    name = Column(String(255))
-    total_vm_count = Column(Integer())
-    vm_count_per_user = Column(Integer())
+    name = Column(Text)
+    desc = Column(Text)
+    url = Column(String(255))
 
 
-class Node(Base, TimestampMixin):
-    """Represents a Node."""
+class Request(Base, TimestampMixin):
 
-    __tablename__ = 'node'
+    __tablename__ = 'request'
     __table_args__ = (
         table_args()
     )
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
-    project_id = Column(String(255))
-    user_id = Column(String(255))
-    stack_id = Column(String(255))
+    endpoint_id = Column(String(36))
+
+
+class RequestHeader(Base, TimestampMixin):
+
+    __tablename__ = 'request_header'
+    __table_args__ = (
+        table_args()
+    )
+    id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
     name = Column(String(255))
-    nodepool_id = Column(String(36))
-    status = Column(String(20))
-    memory = Column(String(255))
+    value = Column(String(255))
+    request_id = Column(String(36))
+
+
+class Response(Base, TimestampMixin):
+
+    __tablename__ = 'response'
+    __table_args__ = (
+        table_args()
+    )
+    id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
+    endpoint_id = Column(String(36))
+
+
+class ResponseStatusCode(Base, TimestampMixin):
+
+    __tablename__ = 'response_statuscode'
+    __table_args__ = (
+        table_args()
+    )
+    id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
+    status_code = Column(String(3))
+    response_id = Column(String(36))
+
+
+class ResponseErrorMessage(Base, TimestampMixin):
+
+    __tablename__ = 'response_error_message'
+    __table_args__ = (
+        table_args()
+    )
+    id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
+    message = Column(String(255))
+    response_statuscode_id = Column(String(36))
 
 
 class NodePool(Base, TimestampMixin):
@@ -170,21 +205,17 @@ class NodePool(Base, TimestampMixin):
     host = Column(String(255))
     name = Column(String(255))
     status = Column(String(255))
-
-
-class Gateway(Base, TimestampMixin):
-    """Represents a Gateway."""
-
-    __tablename__ = 'gateway'
-    __table_args__ = (
-        table_args()
-    )
-    id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
-    project_id = Column(String(255))
-    user_id = Column(String(255))
-    stack_id = Column(String(255))
-    name = Column(String(255))
-    ip = Column(String(36))
-    ports = Column(JSONEncodedList)
-
+    status_reason = Column(Text)
+    min_size = Column(Integer())
+    max_size = Column(Integer())
+    scaleup_adjust = Column(Integer())
+    scaledown_adjust = Column(Integer())
+    scaleup_cooldown = Column(Integer())
+    scaledown_cooldown = Column(Integer())
+    scaleup_period = Column(Integer())
+    scaleup_evaluation_periods = Column(Integer())
+    scalueup_threshold = Column(Integer())
+    scaledown_scale_period = Column(Integer())
+    scaledown_evaluation_periods = Column(Integer())
+    scaledown_threshold = Column(Integer())
 

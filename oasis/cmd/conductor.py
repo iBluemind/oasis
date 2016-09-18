@@ -25,6 +25,7 @@ from oslo_service import service
 from oasis.common import rpc_service
 from oasis.common import service as oasis_service
 from oasis.common import short_id
+from oasis.conductor.handlers import function_conductor
 from oasis.i18n import _LE
 from oasis.i18n import _LI
 from oasis import version
@@ -45,8 +46,17 @@ def main():
 
     conductor_id = short_id.generate_id()
     endpoints = [
-
+        function_conductor.Handler()
     ]
+
+    if (not os.path.isfile(cfg.CONF.bay.k8s_atomic_template_path)
+        and not os.path.isfile(cfg.CONF.bay.k8s_coreos_template_path)):
+        LOG.error(_LE("The Heat template can not be found for either k8s "
+                      "atomic %(atomic_template)s or coreos "
+                      "(coreos_template)%s. Install template first if you "
+                      "want to create bay.") %
+                  {'atomic_template': cfg.CONF.bay.k8s_atomic_template_path,
+                   'coreos_template': cfg.CONF.bay.k8s_coreos_template_path})
 
     server = rpc_service.Service.create(cfg.CONF.conductor.topic,
                                         conductor_id, endpoints,
