@@ -126,7 +126,6 @@ class Function(Base, TimestampMixin):
 
 
 class Endpoint(Base, TimestampMixin):
-
     __tablename__ = 'endpoint'
     __table_args__ = (
         table_args()
@@ -137,18 +136,27 @@ class Endpoint(Base, TimestampMixin):
     url = Column(String(255))
 
 
-class Request(Base, TimestampMixin):
+class HttpApi(Base, TimestampMixin):
+    __tablename__ = 'http_api'
+    __table_args__ = (
+        table_args()
+    )
 
+    id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
+    method = Column(String(10))
+    endpoint_id = Column(String(36))
+
+
+class Request(Base, TimestampMixin):
     __tablename__ = 'request'
     __table_args__ = (
         table_args()
     )
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
-    endpoint_id = Column(String(36))
+    http_api_id = Column(String(36))
 
 
 class RequestHeader(Base, TimestampMixin):
-
     __tablename__ = 'request_header'
     __table_args__ = (
         table_args()
@@ -160,17 +168,15 @@ class RequestHeader(Base, TimestampMixin):
 
 
 class Response(Base, TimestampMixin):
-
     __tablename__ = 'response'
     __table_args__ = (
         table_args()
     )
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
-    endpoint_id = Column(String(36))
+    http_api_id = Column(String(36))
 
 
 class ResponseStatusCode(Base, TimestampMixin):
-
     __tablename__ = 'response_statuscode'
     __table_args__ = (
         table_args()
@@ -181,7 +187,6 @@ class ResponseStatusCode(Base, TimestampMixin):
 
 
 class ResponseErrorMessage(Base, TimestampMixin):
-
     __tablename__ = 'response_error_message'
     __table_args__ = (
         table_args()
@@ -191,31 +196,42 @@ class ResponseErrorMessage(Base, TimestampMixin):
     response_statuscode_id = Column(String(36))
 
 
-class NodePool(Base, TimestampMixin):
-    """Represents a NodePool."""
+class NodePoolPolicy(Base, TimestampMixin):
+    __tablename__ = 'nodepool_policy'
+    __table_args__ = (
+        table_args()
+    )
 
+    id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
+    min_size = Column(Integer())
+    max_size = Column(Integer())
+    scaleup_adjust = Column(Integer())
+    scaleup_cooldown = Column(Integer())
+    scaleup_period = Column(Integer())
+    scaleup_evaluation_periods = Column(Integer())
+    scalueup_threshold = Column(Integer())
+    scaledown_adjust = Column(Integer())
+    scaledown_cooldown = Column(Integer())
+    scaledown_scale_period = Column(Integer())
+    scaledown_evaluation_periods = Column(Integer())
+    scaledown_threshold = Column(Integer())
+
+
+class NodePool(Base, TimestampMixin):
     __tablename__ = 'nodepool'
     __table_args__ = (
         table_args()
     )
+
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
     project_id = Column(String(255))
     user_id = Column(String(255))
     stack_id = Column(String(255))
+    function_id = Column(String(36))
+    nodepool_policy_id = Column(String(36))
     host = Column(String(255))
     name = Column(String(255))
     status = Column(String(255))
     status_reason = Column(Text)
-    min_size = Column(Integer())
-    max_size = Column(Integer())
-    scaleup_adjust = Column(Integer())
-    scaledown_adjust = Column(Integer())
-    scaleup_cooldown = Column(Integer())
-    scaledown_cooldown = Column(Integer())
-    scaleup_period = Column(Integer())
-    scaleup_evaluation_periods = Column(Integer())
-    scalueup_threshold = Column(Integer())
-    scaledown_scale_period = Column(Integer())
-    scaledown_evaluation_periods = Column(Integer())
-    scaledown_threshold = Column(Integer())
+
 
