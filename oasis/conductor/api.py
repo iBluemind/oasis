@@ -10,7 +10,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""API for interfacing with Magnum Backend."""
+"""API for interfacing with Oasis Backend."""
 from oslo_config import cfg
 
 from oasis.common import rpc_service

@@ -141,9 +141,3 @@ def get_server(target, endpoints, serializer=None):
                                     executor='eventlet',
                                     serializer=serializer)
 
-
-def get_notifier(service='container', host=None, publisher_id=None):
-    assert NOTIFIER is not None
-    if not publisher_id:
-        publisher_id = "%s.%s" % (service, host or CONF.host)
-    return NOTIFIER.prepare(publisher_id=publisher_id)

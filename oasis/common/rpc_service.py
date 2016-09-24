@@ -22,7 +22,7 @@ from oslo_service import service
 from oasis.common import rpc
 from oasis.objects import base as objects_base
 from oasis.service import periodic
-from oasis.servicegroup import magnum_service_periodic as servicegroup
+from oasis.servicegroup import oasis_service_periodic as servicegroup
 
 
 # NOTE(paulczar):
@@ -114,3 +114,4 @@ class API(object):
 
     def echo(self, message):
         self._cast('echo', message=message)
+

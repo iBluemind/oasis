@@ -25,7 +25,7 @@ LOG = log.getLogger(__name__)
 
 
 class OasisServicePeriodicTasks(periodic_task.PeriodicTasks):
-    '''Magnum periodic Task class
+    '''Oasis periodic Task class
 
     Any periodic task job need to be added into this class
     '''
