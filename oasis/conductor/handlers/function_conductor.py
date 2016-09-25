@@ -33,7 +33,7 @@ from oasis.i18n import _
 from oasis.i18n import _LE
 from oasis.i18n import _LI
 from oasis import objects
-from oasis.objects.fields import BayStatus as function_status
+from oasis.objects.fields import FunctionStatus as function_status
 
 
 oasis_heat_opts = [
@@ -63,14 +63,8 @@ LOG = logging.getLogger(__name__)
 
 
 def _extract_template_definition(context, function, scale_manager=None):
-    functionmodel = conductor_utils.retrieve_functionmodel(context, function)
-    cluster_distro = functionmodel.cluster_distro
-    cluster_coe = functionmodel.coe
-    cluster_server_type = functionmodel.server_type
-    definition = TDef.get_template_definition(cluster_server_type,
-                                              cluster_distro,
-                                              cluster_coe)
-    return definition.extract_definition(context, functionmodel, function,
+    definition = TDef.get_template_definition()
+    return definition.extract_definition(context, function,
                                          scale_manager=scale_manager)
 
 
@@ -140,7 +134,7 @@ class Handler(object):
         osc = clients.OpenStackClients(context)
 
         function.uuid = uuid.uuid4()
-        self._create_trustee_and_trust(osc, function)
+        # self._create_trustee_and_trust(osc, function)
         try:
             # Generate certificate and set the cert reference to function
             # cert_manager.generate_certificates_to_function(function)
@@ -199,7 +193,7 @@ class Handler(object):
     def function_delete(self, context, uuid):
         LOG.debug('function_heat function_delete')
         osc = clients.OpenStackClients(context)
-        function = objects.Bay.get_by_uuid(context, uuid)
+        function = objects.Function.get_by_uuid(context, uuid)
 
         self._delete_trustee_and_trust(osc, function)
 
@@ -219,7 +213,7 @@ class Handler(object):
             try:
                 cert_manager.delete_certificates_from_function(function)
                 function.destroy()
-            except exception.BayNotFound:
+            except exception.FunctionNotFound:
                 LOG.info(_LI('The function %s has been deleted by others.'), uuid)
             return None
         except Exception:
@@ -299,7 +293,7 @@ class HeatPoller(object):
         try:
             cert_manager.delete_certificates_from_function(self.function)
             self.function.destroy()
-        except exception.BayNotFound:
+        except exception.FunctionNotFound:
             LOG.info(_LI('The function %s has been deleted by others.')
                      % self.function.uuid)
 
