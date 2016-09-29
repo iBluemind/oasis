@@ -17,8 +17,8 @@
 from oslo_log import log
 from oslo_service import periodic_task
 
-from Oasis import objects
-from Oasis.service import periodic
+from oasis import objects
+from oasis.service import periodic
 
 
 LOG = log.getLogger(__name__)

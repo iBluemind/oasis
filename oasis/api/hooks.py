@@ -16,8 +16,8 @@
 from oslo_config import cfg
 from pecan import hooks
 
-from magnum.common import context
-from magnum.conductor import api as conductor_api
+from oasis.common import context
+from oasis.conductor import api as conductor_api
 
 CONF = cfg.CONF
 CONF.import_opt('auth_uri', 'keystonemiddleware.auth_token',

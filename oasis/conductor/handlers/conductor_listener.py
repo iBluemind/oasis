@@ -10,6 +10,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from oasis.agent import api as agent_api
 
 class Handler(object):
     '''Listen on an AMQP queue named for the conductor.
@@ -24,3 +25,5 @@ class Handler(object):
         action is still alive.
         '''
         return True
+
+
