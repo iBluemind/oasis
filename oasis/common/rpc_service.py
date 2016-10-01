@@ -21,8 +21,8 @@ from oslo_service import service
 
 from oasis.common import rpc
 from oasis.objects import base as objects_base
-from oasis.service import periodic
-from oasis.servicegroup import oasis_service_periodic as servicegroup
+# from oasis.service import periodic
+# from oasis.servicegroup import oasis_service_periodic as servicegroup
 
 
 # NOTE(paulczar):
@@ -41,18 +41,18 @@ TRANSPORT_ALIASES = {
     'magnum.openstack.common.rpc.impl_zmq': 'zmq',
 }
 
-periodic_opts = [
-    cfg.BoolOpt('periodic_enable',
-                default=True,
-                help='Enable periodic tasks.'),
-    cfg.IntOpt('periodic_interval_max',
-               default=60,
-               help='Max interval size between periodic tasks execution in '
-                    'seconds.'),
-]
-
-CONF = cfg.CONF
-CONF.register_opts(periodic_opts)
+# periodic_opts = [
+#     cfg.BoolOpt('periodic_enable',
+#                 default=True,
+#                 help='Enable periodic tasks.'),
+#     cfg.IntOpt('periodic_interval_max',
+#                default=60,
+#                help='Max interval size between periodic tasks execution in '
+#                     'seconds.'),
+# ]
+#
+# CONF = cfg.CONF
+# CONF.register_opts(periodic_opts)
 
 
 class Service(service.Service):
@@ -60,7 +60,7 @@ class Service(service.Service):
     def __init__(self, topic, server, handlers, binary):
         super(Service, self).__init__()
         serializer = rpc.RequestContextSerializer(
-            objects_base.MagnumObjectSerializer())
+            objects_base.OasisObjectSerializer())
         transport = messaging.get_transport(cfg.CONF,
                                             aliases=TRANSPORT_ALIASES)
         # TODO(asalkeld) add support for version='x.y'
@@ -71,9 +71,9 @@ class Service(service.Service):
 
     def start(self):
         # NOTE(suro-patz): The parent class has created a threadgroup, already
-        if CONF.periodic_enable:
-            periodic.setup(CONF, self.tg)
-        servicegroup.setup(CONF, self.binary, self.tg)
+        # if CONF.periodic_enable:
+        #     periodic.setup(CONF, self.tg)
+        # servicegroup.setup(CONF, self.binary, self.tg)
         self._server.start()
 
     def stop(self):

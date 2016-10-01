@@ -15,6 +15,10 @@ class AgentAPI(rpc_service.API):
     def function_create(self, function):
         return self._call('function_create', function=function)
 
+    # Endpoint Operations
+    def test(self):
+        print 'it works!!!! works!!!!\n'
+
 
 class ListenerAPI(rpc_service.API):
     def __init__(self, context=None, topic=None, server=None, timeout=None):

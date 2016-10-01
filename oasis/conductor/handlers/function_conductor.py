@@ -25,87 +25,42 @@ from oasis.common import clients
 from oasis.common import exception
 from oasis.common import short_id
 from oasis.common import utils
-from oasis.conductor.handlers.common import cert_manager
-from oasis.conductor import scale_manager
-from oasis.conductor.template_definition import TemplateDefinition as TDef
-from oasis.conductor import utils as conductor_utils
+# from oasis.conductor.handlers.common import cert_manager
+# from oasis.conductor import scale_manager
+# from oasis.conductor.template_definition import TemplateDefinition as TDef
+# from oasis.conductor import utils as conductor_utils
 from oasis.i18n import _
 from oasis.i18n import _LE
 from oasis.i18n import _LI
 from oasis import objects
 from oasis.objects.fields import FunctionStatus as function_status
+from oasis.agent import api as agent_api
 
 
-oasis_heat_opts = [
-    cfg.IntOpt('max_attempts',
-               default=2000,
-               help=('Number of attempts to query the Heat stack for '
-                     'finding out the status of the created stack and '
-                     'getting template outputs.  This value is ignored '
-                     'during function creation if timeout is set as the poll '
-                     'will continue until function creation either ends '
-                     'or times out.')),
-    cfg.IntOpt('wait_interval',
-               default=1,
-               help=('Sleep time interval between two attempts of querying '
-                     'the Heat stack.  This interval is in seconds.')),
-    cfg.IntOpt('function_create_timeout',
-               help=('The length of time to let function creation continue.  This '
-                     'interval is in minutes.  The default is no timeout.'))
-]
-
-CONF = cfg.CONF
-CONF.register_opts(oasis_heat_opts, group='oasis_heat')
-CONF.import_opt('trustee_domain_id', 'oasis.common.keystone',
-                group='trust')
+# oasis_heat_opts = [
+#     cfg.IntOpt('max_attempts',
+#                default=2000,
+#                help=('Number of attempts to query the Heat stack for '
+#                      'finding out the status of the created stack and '
+#                      'getting template outputs.  This value is ignored '
+#                      'during function creation if timeout is set as the poll '
+#                      'will continue until function creation either ends '
+#                      'or times out.')),
+#     cfg.IntOpt('wait_interval',
+#                default=1,
+#                help=('Sleep time interval between two attempts of querying '
+#                      'the Heat stack.  This interval is in seconds.')),
+#     cfg.IntOpt('function_create_timeout',
+#                help=('The length of time to let function creation continue.  This '
+#                      'interval is in minutes.  The default is no timeout.'))
+# ]
+#
+# CONF = cfg.CONF
+# CONF.register_opts(oasis_heat_opts, group='oasis_heat')
+# CONF.import_opt('trustee_domain_id', 'oasis.common.keystone',
+#                 group='trust')
 
 LOG = logging.getLogger(__name__)
-
-
-def _extract_template_definition(context, function, scale_manager=None):
-    definition = TDef.get_template_definition()
-    return definition.extract_definition(context, function,
-                                         scale_manager=scale_manager)
-
-
-def _create_stack(context, osc, function, function_create_timeout):
-    template_path, heat_params = _extract_template_definition(context, function)
-
-    tpl_files, template = template_utils.get_template_contents(template_path)
-    # Make sure no duplicate stack name
-    stack_name = '%s-%s' % (function.name, short_id.generate_id())
-    if function_create_timeout:
-        heat_timeout = function_create_timeout
-    elif function_create_timeout == 0:
-        heat_timeout = None
-    else:
-        # no function_create_timeout value was passed in to the request
-        # so falling back on configuration file value
-        heat_timeout = cfg.CONF.function_heat.function_create_timeout
-    fields = {
-        'stack_name': stack_name,
-        'parameters': heat_params,
-        'template': template,
-        'files': tpl_files,
-        'timeout_mins': heat_timeout
-    }
-    created_stack = osc.heat().stacks.create(**fields)
-
-    return created_stack
-
-
-def _update_stack(context, osc, function, scale_manager=None):
-    template_path, heat_params = _extract_template_definition(
-        context, function, scale_manager=scale_manager)
-
-    tpl_files, template = template_utils.get_template_contents(template_path)
-    fields = {
-        'parameters': heat_params,
-        'template': template,
-        'files': tpl_files
-    }
-
-    return osc.heat().stacks.update(function.stack_id, **fields)
 
 
 class Handler(object):
@@ -126,6 +81,10 @@ class Handler(object):
         trust = osc.keystone().create_trust(trustee.id)
         function.trust_id = trust.id
 
+    def conductor_test(self):
+        print 'Handler test'
+        agent_api.test()
+
     # Function Operations
 
     def function_create(self, context, function, function_create_timeout):
@@ -135,20 +94,20 @@ class Handler(object):
 
         function.uuid = uuid.uuid4()
         # self._create_trustee_and_trust(osc, function)
-        try:
-            # Generate certificate and set the cert reference to function
-            # cert_manager.generate_certificates_to_function(function)
-            created_stack = _create_stack(context, osc, function,
-                                          function_create_timeout)
-        except exc.HTTPBadRequest as e:
-            cert_manager.delete_certificates_from_function(function)
-            raise exception.InvalidParameterValue(message=six.text_type(e))
-        except Exception:
-            raise
+        # try:
+        #     Generate certificate and set the cert reference to function
+        #     cert_manager.generate_certificates_to_function(function)
+        #     created_stack = _create_stack(context, osc, function,
+        #                                   function_create_timeout)
+        # except exc.HTTPBadRequest as e:
+        #     cert_manager.delete_certificates_from_function(function)
+        #     raise exception.InvalidParameterValue(message=six.text_type(e))
+        # except Exception:
+        #     raise
 
-        function.stack_id = created_stack['stack']['id']
-        function.status = function_status.CREATE_IN_PROGRESS
-        function.create()
+        # function.stack_id = created_stack['stack']['id']
+        # function.status = function_status.CREATE_IN_PROGRESS
+        # function.create()
 
         self._poll_and_check(osc, function)
 
@@ -178,9 +137,9 @@ class Handler(object):
         if not delta:
             return function
 
-        manager = scale_manager.ScaleManager(context, osc, function)
+        # manager = scale_manager.ScaleManager(context, osc, function)
 
-        _update_stack(context, osc, function, manager)
+        # _update_stack(context, osc, function, manager)
         self._poll_and_check(osc, function)
 
         return function
@@ -190,14 +149,15 @@ class Handler(object):
         osc.keystone().delete_trust(function.trust_id)
         osc.keystone().delete_trustee(function.trustee_user_id)
 
-    def function_delete(self, context, uuid):
+    def function_delete(self, context, function):
+        print "API called"
         LOG.debug('function_heat function_delete')
-        osc = clients.OpenStackClients(context)
-        function = objects.Function.get_by_uuid(context, uuid)
-
-        self._delete_trustee_and_trust(osc, function)
-
-        stack_id = function.stack_id
+        # osc = clients.OpenStackClients(context)
+        # function = objects.Function.get_by_uuid(context, uuid)
+        #
+        # self._delete_trustee_and_trust(osc, function)
+        #
+        # stack_id = function.stack_id
         # NOTE(sdake): This will execute a stack_delete operation.  This will
         # Ignore HTTPNotFound exceptions (stack wasn't present).  In the case
         # that Heat couldn't find the stack representing the function, likely a user
@@ -205,21 +165,22 @@ class Handler(object):
         # contents of the function are forever lost.
         #
         # If the exception is unhandled, the original exception will be raised.
-        try:
-            osc.heat().stacks.delete(stack_id)
-        except exc.HTTPNotFound:
-            LOG.info(_LI('The stack %s was not be found during function'
-                         ' deletion.'), stack_id)
-            try:
-                cert_manager.delete_certificates_from_function(function)
-                function.destroy()
-            except exception.FunctionNotFound:
-                LOG.info(_LI('The function %s has been deleted by others.'), uuid)
-            return None
-        except Exception:
-            raise
 
-        self._poll_and_check(osc, function)
+        # try:
+        #     osc.heat().stacks.delete(stack_id)
+        # except exc.HTTPNotFound:
+        #     LOG.info(_LI('The stack %s was not be found during function'
+        #                  ' deletion.'), stack_id)
+        #     try:
+        #         cert_manager.delete_certificates_from_function(function)
+        #         function.destroy()
+        #     except exception.FunctionNotFound:
+        #         LOG.info(_LI('The function %s has been deleted by others.'), uuid)
+        #     return None
+        # except Exception:
+        #     raise
+
+        # self._poll_and_check(osc, function)
 
         return None
 
@@ -236,11 +197,11 @@ class HeatPoller(object):
         self.context = self.openstack_client.context
         self.function = function
         self.attempts = 0
-        self.functionmodel = conductor_utils.retrieve_functionmodel(self.context, function)
-        self.template_def = TDef.get_template_definition(
-            self.functionmodel.server_type,
-            self.functionmodel.cluster_distro, self.functionmodel.coe
-        )
+        # self.functionmodel = conductor_utils.retrieve_functionmodel(self.context, function)
+        # self.template_def = TDef.get_template_definition(
+        #     self.functionmodel.server_type,
+        #     self.functionmodel.cluster_distro, self.functionmodel.coe
+        # )
 
     def poll_and_check(self):
         # TODO(yuanying): temporary implementation to update api_address,
@@ -290,12 +251,12 @@ class HeatPoller(object):
     def _delete_complete(self):
         LOG.info(_LI('Bay has been deleted, stack_id: %s')
                  % self.function.stack_id)
-        try:
-            cert_manager.delete_certificates_from_function(self.function)
-            self.function.destroy()
-        except exception.FunctionNotFound:
-            LOG.info(_LI('The function %s has been deleted by others.')
-                     % self.function.uuid)
+        # try:
+        #     cert_manager.delete_certificates_from_function(self.function)
+        #     self.function.destroy()
+        # except exception.FunctionNotFound:
+        #     LOG.info(_LI('The function %s has been deleted by others.')
+        #              % self.function.uuid)
 
     def _sync_function_status(self, stack):
         self.function.status = stack.stack_status

@@ -39,6 +39,10 @@ class API(rpc_service.API):
     def function_update(self, function_id):
         return self._call('function_update', function_id=function_id)
 
+    def test(self):
+        print 'API test ......'
+        return self._call('function_delete', function="fff")
+
 
 class ListenerAPI(rpc_service.API):
     def __init__(self, context=None, topic=None, server=None, timeout=None):

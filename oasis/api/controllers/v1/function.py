@@ -305,18 +305,18 @@ class FunctionsController(rest.RestController):
 
         validate_bay_properties(delta)
 
-        res_function = pecan.request.rpcapi.bay_update(function)
+        res_function = pecan.request.rpcapi.bay_update(functqion)
         return Function.convert_with_links(res_function)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
-    def delete(self, function_ident):
+    def delete(self):
         """Delete a bay.
 
         :param bay_ident: UUID of a bay or logical name of the bay.
         """
         context = pecan.request.context
-        function = api_utils.get_resource('Function', function_ident)
-        policy.enforce(context, 'function:delete', function,
-                       action='function:delete')
-
-        pecan.request.rpcapi.function_delete(function.uuid)
+        # function = api_utils.get_resource('Function', "dd")
+        # policy.enforce(context, 'function:delete', function,
+        #                action='function:delete')
+        print 'Delete test ......'
+        pecan.request.rpcapi.test()
