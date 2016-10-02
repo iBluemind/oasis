@@ -257,9 +257,8 @@ class FunctionsController(rest.RestController):
             function_dict['body'] = None
 
         function = objects.Function(context, **function_dict)
-        function_create_timeout = 1000  # todo
 
-        pecan.request.rpcapi.function_create(function, function_create_timeout)
+        pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('functions',

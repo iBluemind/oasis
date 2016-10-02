@@ -41,7 +41,7 @@ class NodePoolPolicyPatchType(types.JsonPatchType):
                           '/scaleup_evaluation_periods', '/scaleup_threshold',
                           '/scaledown_adjust', '/scaledown_cooldown',
                           '/scaledown_cooldown', '/scaledown_period',
-                          'scaledown_evaluation_periods', 'scaledown_threshold']
+                          '/scaledown_evaluation_periods', '/scaledown_threshold']
         return types.JsonPatchType.internal_attrs() + internal_attrs
 
 
@@ -84,7 +84,7 @@ class NodePoolPolicy(base.APIBase):
         super(NodePoolPolicy, self).__init__()
 
         self.fields = []
-        for field in objects.NodePool.fields:
+        for field in objects.NodePoolPolicy.fields:
             # Skip fields we do not expose.
             if not hasattr(self, field):
                 continue
@@ -251,6 +251,8 @@ class NodePoolPoliciesController(rest.RestController):
         print nodepool_policy_dict
 
         nodepool_policy = objects.NodePoolPolicy(context, **nodepool_policy_dict)
+        nodepool_policy.create()
+
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('nodepool_policies',
                                                  nodepool_policy.id)

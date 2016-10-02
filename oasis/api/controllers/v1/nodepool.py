@@ -231,16 +231,7 @@ class NodePoolsController(rest.RestController):
         policy.enforce(context, 'nodepool:create',
                        action='nodepool:create')
         nodepool_dict = nodepool.as_dict()
-        # nodepool_dict['stack_id'] = context.stack_id
-        nodepool_dict['project_id'] = context.project_id
-        nodepool_dict['user_id'] = context.user_id
-        if nodepool_dict.get('name') is None:
-            nodepool_dict['name'] = None
-        if nodepool_dict.get('body') is None:
-            nodepool_dict['body'] = None
-
         nodepool = objects.NodePool(context, **nodepool_dict)
-
         nodepool.create()
 
         pecan.request.rpcapi.nodepool_create(nodepool)

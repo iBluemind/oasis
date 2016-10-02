@@ -259,3 +259,16 @@ class Connection(api.Connection):
         except db_exc.DBDuplicateEntry:
             raise exception.NodePoolPolicyAlreadyExists(uuid=values['id'])
         return nodepool_policy
+
+    def create_nodepool(self, values):
+        # ensure defaults are present for new funtions
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        nodepool = models.NodePool()
+        nodepool.update(values)
+        try:
+            nodepool.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.NodePoolAlreadyExists(uuid=values['id'])
+        return nodepool
