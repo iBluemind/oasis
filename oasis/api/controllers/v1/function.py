@@ -58,10 +58,10 @@ class Function(base.APIBase):
     """Unique UUID for this function"""
 
     name = wtypes.StringType(min_length=1, max_length=255)
-    """Name of this bay"""
+    """Name of this function"""
 
     links = wsme.wsattr([link.Link], readonly=True)
-    """A list containing a self link and associated bay links"""
+    """A list containing a self link and associated function links"""
 
     stack_id = wsme.wsattr(wtypes.text, readonly=False)
     """Stack id of the heat stack"""
@@ -73,13 +73,13 @@ class Function(base.APIBase):
     """Stack id of the heat stack"""
 
     status = wtypes.Enum(str, *fields.FunctionStatus.ALL)
-    """Status of the bay from the heat stack"""
+    """Status of the function from the heat stack"""
 
     status_reason = wtypes.text
-    """Status reason of the bay from the heat stack"""
+    """Status reason of the function from the heat stack"""
 
     body = wtypes.text
-    """Url used for bay node discovery"""
+    """Url used for function node discovery"""
 
     def __init__(self, **kwargs):
         super(Function, self).__init__()
@@ -186,7 +186,7 @@ class FunctionsController(rest.RestController):
                    wtypes.text)
     def get_all(self, marker=None, limit=None, sort_key='id',
                 sort_dir='asc'):
-        """Retrieve a list of bays.
+        """Retrieve a list of functions.
 
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
@@ -203,7 +203,7 @@ class FunctionsController(rest.RestController):
                    wtypes.text)
     def detail(self, marker=None, limit=None, sort_key='id',
                sort_dir='asc'):
-        """Retrieve a list of bays with detail.
+        """Retrieve a list of functions with detail.
 
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
@@ -227,9 +227,9 @@ class FunctionsController(rest.RestController):
 
     @expose.expose(Function, types.uuid_or_name)
     def get_one(self, function_ident):
-        """Retrieve information about the given bay.
+        """Retrieve information about the given function.
 
-        :param function_ident: UUID of a bay or logical name of the bay.
+        :param function_ident: UUID of a function or logical name of the function.
         """
         context = pecan.request.context
         function = api_utils.get_resource('Function', function_ident)
@@ -248,7 +248,7 @@ class FunctionsController(rest.RestController):
         policy.enforce(context, 'function:create',
                        action='function:create')
         function_dict = function.as_dict()
-        # function_dict['stack_id'] = context.stack_id
+
         function_dict['project_id'] = context.project_id
         function_dict['user_id'] = context.user_id
         if function_dict.get('name') is None:
@@ -257,27 +257,23 @@ class FunctionsController(rest.RestController):
             function_dict['body'] = None
 
         function = objects.Function(context, **function_dict)
+        function_create_timeout = 1000  # todo
 
-        function.create()
+        pecan.request.rpcapi.function_create(function, function_create_timeout)
+
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('functions',
                                                  function.id)
         return Function.convert_with_links(function)
 
-        # res_function = pecan.request.rpcapi.function_create(function,
-        #                                           function.function_create_timeout)
-
-        # # Set the HTTP Location Header
-        # pecan.response.location = link.build_url('functions', res_function.uuid)
-        # return Function.convert_with_links(res_function)
 
     @wsme.validate(types.uuid, [FunctionPatchType])
     @expose.expose(Function, types.uuid_or_name, body=[FunctionPatchType])
     def patch(self, function_ident, patch):
-        """Update an existing bay.
+        """Update an existing function.
 
-        :param bay_ident: UUID or logical name of a bay.
-        :param patch: a json PATCH document to apply to this bay.
+        :param function_ident: UUID or logical name of a function.
+        :param patch: a json PATCH document to apply to this function.
         """
         context = pecan.request.context
         function = api_utils.get_resource('Function', function_ident)
@@ -305,18 +301,18 @@ class FunctionsController(rest.RestController):
 
         validate_bay_properties(delta)
 
-        res_function = pecan.request.rpcapi.bay_update(functqion)
+        res_function = pecan.request.rpcapi.function_update(function)
         return Function.convert_with_links(res_function)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
-    def delete(self):
-        """Delete a bay.
+    def delete(self, function_ident):
+        """Delete a function.
 
-        :param bay_ident: UUID of a bay or logical name of the bay.
+        :param function_ident: UUID of a bay or logical name of the function.
         """
         context = pecan.request.context
-        # function = api_utils.get_resource('Function', "dd")
-        # policy.enforce(context, 'function:delete', function,
-        #                action='function:delete')
-        print 'Delete test ......'
-        pecan.request.rpcapi.test()
+        function = api_utils.get_resource('Function', function_ident)
+        policy.enforce(context, 'function:delete', function,
+                       action='function:delete')
+
+        pecan.request.rpcapi.function_delete(function)

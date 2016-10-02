@@ -34,29 +34,29 @@ from oasis.i18n import _LE
 from oasis.i18n import _LI
 from oasis import objects
 from oasis.objects.fields import FunctionStatus as function_status
-from oasis.agent import api as agent_api
+from oasis.agent import api as agent_rpc
 
 
-# oasis_heat_opts = [
-#     cfg.IntOpt('max_attempts',
-#                default=2000,
-#                help=('Number of attempts to query the Heat stack for '
-#                      'finding out the status of the created stack and '
-#                      'getting template outputs.  This value is ignored '
-#                      'during function creation if timeout is set as the poll '
-#                      'will continue until function creation either ends '
-#                      'or times out.')),
-#     cfg.IntOpt('wait_interval',
-#                default=1,
-#                help=('Sleep time interval between two attempts of querying '
-#                      'the Heat stack.  This interval is in seconds.')),
-#     cfg.IntOpt('function_create_timeout',
-#                help=('The length of time to let function creation continue.  This '
-#                      'interval is in minutes.  The default is no timeout.'))
-# ]
-#
-# CONF = cfg.CONF
-# CONF.register_opts(oasis_heat_opts, group='oasis_heat')
+oasis_heat_opts = [
+    cfg.IntOpt('max_attempts',
+               default=2000,
+               help=('Number of attempts to query the Heat stack for '
+                     'finding out the status of the created stack and '
+                     'getting template outputs.  This value is ignored '
+                     'during function creation if timeout is set as the poll '
+                     'will continue until function creation either ends '
+                     'or times out.')),
+    cfg.IntOpt('wait_interval',
+               default=1,
+               help=('Sleep time interval between two attempts of querying '
+                     'the Heat stack.  This interval is in seconds.')),
+    cfg.IntOpt('function_create_timeout',
+               help=('The length of time to let function creation continue.  This '
+                     'interval is in minutes.  The default is no timeout.'))
+]
+
+CONF = cfg.CONF
+CONF.register_opts(oasis_heat_opts, group='oasis_heat')
 # CONF.import_opt('trustee_domain_id', 'oasis.common.keystone',
 #                 group='trust')
 
@@ -81,10 +81,6 @@ class Handler(object):
         trust = osc.keystone().create_trust(trustee.id)
         function.trust_id = trust.id
 
-    def conductor_test(self):
-        print 'Handler test'
-        agent_api.test()
-
     # Function Operations
 
     def function_create(self, context, function, function_create_timeout):
@@ -104,12 +100,13 @@ class Handler(object):
         #     raise exception.InvalidParameterValue(message=six.text_type(e))
         # except Exception:
         #     raise
-
+        #
         # function.stack_id = created_stack['stack']['id']
         # function.status = function_status.CREATE_IN_PROGRESS
         # function.create()
 
-        self._poll_and_check(osc, function)
+        agent_rpc.api.function_create(function='temp')
+        # self._poll_and_check(osc, function)
 
         return function
 
@@ -117,30 +114,32 @@ class Handler(object):
         LOG.debug('function_heat function_update')
 
         osc = clients.OpenStackClients(context)
-        stack = osc.heat().stacks.get(function.stack_id)
-        allow_update_status = (
-            function_status.CREATE_COMPLETE,
-            function_status.UPDATE_COMPLETE,
-            function_status.RESUME_COMPLETE,
-            function_status.RESTORE_COMPLETE,
-            function_status.ROLLBACK_COMPLETE,
-            function_status.SNAPSHOT_COMPLETE,
-            function_status.CHECK_COMPLETE,
-            function_status.ADOPT_COMPLETE
-        )
-        if stack.stack_status not in allow_update_status:
-            operation = _('Updating a function when stack status is '
-                          '"%s"') % stack.stack_status
-            raise exception.NotSupported(operation=operation)
-
-        delta = function.obj_what_changed()
-        if not delta:
-            return function
+        # stack = osc.heat().stacks.get(function.stack_id)
+        # allow_update_status = (
+        #     function_status.CREATE_COMPLETE,
+        #     function_status.UPDATE_COMPLETE,
+        #     function_status.RESUME_COMPLETE,
+        #     function_status.RESTORE_COMPLETE,
+        #     function_status.ROLLBACK_COMPLETE,
+        #     function_status.SNAPSHOT_COMPLETE,
+        #     function_status.CHECK_COMPLETE,
+        #     function_status.ADOPT_COMPLETE
+        # )
+        # if stack.stack_status not in allow_update_status:
+        #     operation = _('Updating a function when stack status is '
+        #                   '"%s"') % stack.stack_status
+        #     raise exception.NotSupported(operation=operation)
+        #
+        # delta = function.obj_what_changed()
+        # if not delta:
+        #     return function
 
         # manager = scale_manager.ScaleManager(context, osc, function)
 
         # _update_stack(context, osc, function, manager)
-        self._poll_and_check(osc, function)
+
+        agent_rpc.api.function_update(context, 'temp')
+        # self._poll_and_check(osc, function)
 
         return function
 
@@ -150,22 +149,21 @@ class Handler(object):
         osc.keystone().delete_trustee(function.trustee_user_id)
 
     def function_delete(self, context, function):
-        print "API called"
         LOG.debug('function_heat function_delete')
-        # osc = clients.OpenStackClients(context)
+        osc = clients.OpenStackClients(context)
         # function = objects.Function.get_by_uuid(context, uuid)
         #
         # self._delete_trustee_and_trust(osc, function)
         #
         # stack_id = function.stack_id
-        # NOTE(sdake): This will execute a stack_delete operation.  This will
-        # Ignore HTTPNotFound exceptions (stack wasn't present).  In the case
-        # that Heat couldn't find the stack representing the function, likely a user
-        # has deleted the stack outside the context of Magnum.  Therefore the
-        # contents of the function are forever lost.
+        # # NOTE(sdake): This will execute a stack_delete operation.  This will
+        # # Ignore HTTPNotFound exceptions (stack wasn't present).  In the case
+        # # that Heat couldn't find the stack representing the function, likely a user
+        # # has deleted the stack outside the context of Magnum.  Therefore the
+        # # contents of the function are forever lost.
+        # #
+        # # If the exception is unhandled, the original exception will be raised.
         #
-        # If the exception is unhandled, the original exception will be raised.
-
         # try:
         #     osc.heat().stacks.delete(stack_id)
         # except exc.HTTPNotFound:
@@ -179,6 +177,8 @@ class Handler(object):
         #     return None
         # except Exception:
         #     raise
+
+        agent_rpc.api.function_delete(context, 'temp')
 
         # self._poll_and_check(osc, function)
 

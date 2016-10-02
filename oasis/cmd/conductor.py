@@ -12,7 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""Starter script for the Magnum conductor service."""
+"""Starter script for the Oasis conductor service."""
 
 import os
 import sys

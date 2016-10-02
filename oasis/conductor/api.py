@@ -30,18 +30,15 @@ class API(rpc_service.API):
 
     # Function Operations
 
-    def function_create(self, function):
-        return self._call('function_create', function=function)
+    def function_create(self, function, function_create_timeout):
+        return self._call('function_create', function=function,
+                          function_create_timeout=function_create_timeout)
 
     def function_delete(self, function_id):
         return self._call('function_delete', function_id=function_id)
 
     def function_update(self, function_id):
         return self._call('function_update', function_id=function_id)
-
-    def test(self):
-        print 'API test ......'
-        return self._call('function_delete', function="fff")
 
 
 class ListenerAPI(rpc_service.API):
