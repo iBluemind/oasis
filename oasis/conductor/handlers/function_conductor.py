@@ -35,6 +35,7 @@ from oasis.i18n import _LI
 from oasis import objects
 from oasis.objects.fields import FunctionStatus as function_status
 from oasis.agent import api as agent_rpc
+from oasis.common import context
 
 
 oasis_heat_opts = [
@@ -61,6 +62,34 @@ CONF.register_opts(oasis_heat_opts, group='oasis_heat')
 #                 group='trust')
 
 LOG = logging.getLogger(__name__)
+
+# TODO real data
+headers = {}
+user_name = headers.get('X-User-Name')
+user_id = headers.get('X-User-Id')
+project = headers.get('X-Project-Name')
+project_id = headers.get('X-Project-Id')
+domain_id = headers.get('X-User-Domain-Id')
+domain_name = headers.get('X-User-Domain-Name')
+auth_token = headers.get('X-Auth-Token')
+roles = headers.get('X-Roles', '').split(',')
+auth_token_info = None
+
+auth_url = None
+
+# auth_url = CONF.keystone_authtoken.auth_uri
+
+agent_context = context.make_context(
+    auth_token=auth_token,
+    auth_url=auth_url,
+    auth_token_info=auth_token_info,
+    user_name=user_name,
+    user_id=user_id,
+    project_name=project,
+    project_id=project_id,
+    domain_id=domain_id,
+    domain_name=domain_name,
+    roles=roles)
 
 
 class Handler(object):
@@ -105,7 +134,9 @@ class Handler(object):
         # function.status = function_status.CREATE_IN_PROGRESS
         # function.create()
 
-        agent_rpc.api.function_create(function='temp')
+        api = agent_rpc.AgentAPI(context=agent_context)  # TODO refactor
+        api.function_create('funciton')
+
         # self._poll_and_check(osc, function)
 
         return function
@@ -138,7 +169,8 @@ class Handler(object):
 
         # _update_stack(context, osc, function, manager)
 
-        agent_rpc.api.function_update(context, 'temp')
+        api = agent_rpc.AgentAPI(context=agent_context)  # TODO refactor
+        api.function_update('funciton')
         # self._poll_and_check(osc, function)
 
         return function
@@ -178,7 +210,8 @@ class Handler(object):
         # except Exception:
         #     raise
 
-        agent_rpc.api.function_delete(context, 'temp')
+        api = agent_rpc.AgentAPI(context=agent_context)  # TODO refactor
+        api.function_delete('funciton')
 
         # self._poll_and_check(osc, function)
 
