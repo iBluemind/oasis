@@ -11,6 +11,16 @@ class AgentAPI(rpc_service.API):
         super(AgentAPI, self).__init__(transport, context,
                                   topic=cfg.CONF.agent.topic)
 
+    # Nodepool Operations
+    def nodepool_create(self):
+        return self._call('nodepool_create', function=function)
+
+    def nodepool_update(self):
+        return self._call('nodepool_update', function=function)
+
+    def nodepool_delete(self):
+        return self._call('nodepool_delete', function=function)
+
     # Function Operations
     def function_create(self, function):
         # mock data

@@ -169,7 +169,7 @@ class NodePoolsController(rest.RestController):
                    wtypes.text)
     def get_all(self, marker=None, limit=None, sort_key='id',
                 sort_dir='asc'):
-        """Retrieve a list of bays.
+        """Retrieve a list of nodepools.
 
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
@@ -186,7 +186,7 @@ class NodePoolsController(rest.RestController):
                    wtypes.text)
     def detail(self, marker=None, limit=None, sort_key='id',
                sort_dir='asc'):
-        """Retrieve a list of bays with detail.
+        """Retrieve a list of nodepools with detail.
 
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
@@ -242,6 +242,9 @@ class NodePoolsController(rest.RestController):
         nodepool = objects.NodePool(context, **nodepool_dict)
 
         nodepool.create()
+
+        pecan.request.rpcapi.nodepool_create(nodepool)
+
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('nodepools',
                                                  nodepool.id)
@@ -288,18 +291,19 @@ class NodePoolsController(rest.RestController):
 
         validate_bay_properties(delta)
 
-        res_nodepool = pecan.request.rpcapi.bay_update(function)
+        res_nodepool = pecan.request.rpcapi.nodepool_update(nodepool)
+
         return NodePool.convert_with_links(res_nodepool)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
-    def delete(self):
-        """Delete a bay.
+    def delete(self, nodepool_ident):
+        """Delete a nodepool.
 
-        :param bay_ident: UUID of a bay or logical name of the bay.
+        :param nodepool_ident: UUID of a bay or logical name of the function.
         """
         context = pecan.request.context
-        # nodepool = api_utils.get_resource('NodePool', "dd")
-        # policy.enforce(context, 'nodepool:delete', nodepool,
-        #                action='nodepool:delete')
-        print 'Delete test ......'
-        pecan.request.rpcapi.test()
+        nodepool = api_utils.get_resource('Nodepool', nodepool_ident)
+        policy.enforce(context, 'nodepool:delete', nodepool,
+                       action='nodepool:delete')
+
+        pecan.request.rpcapi.function_delete(nodepool)
