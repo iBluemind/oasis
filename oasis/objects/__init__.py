@@ -13,6 +13,13 @@
 #    under the License.
 
 from oasis.objects import function
+from oasis.objects import nodepool
+from oasis.objects import nodepool_policy
 
 Function = function.Function
-__all__ = (Function)
+NodePool = nodepool.NodePool
+NodePoolPolicy = nodepool_policy
+
+__all__ = (Function,
+           NodePool,
+           NodePoolPolicy)

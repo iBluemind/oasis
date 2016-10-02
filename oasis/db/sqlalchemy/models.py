@@ -33,7 +33,7 @@ from oasis.common import config
 
 
 def table_args():
-    # config.parse_args(["/etc/oasis/oasis.conf",])
+    config.parse_args(["/etc/oasis/oasis.conf",])
     engine_name = urlparse.urlparse(cfg.CONF.database.connection).scheme
     if engine_name == 'mysql':
         return {'mysql_engine': cfg.CONF.database.mysql_engine,
@@ -111,9 +111,9 @@ class Function(Base, TimestampMixin):
         table_args()
     )
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
-    project_id = Column(String(255))
-    stack_id = Column(String(255))
-    user_id = Column(String(255))
+    project_id = Column(String(36))
+    stack_id = Column(String(36))
+    user_id = Column(String(36))
     status = Column(String(20))
     status_reason = Column(Text)
     name = Column(String(255))
@@ -212,7 +212,7 @@ class NodePoolPolicy(Base, TimestampMixin):
     scalueup_threshold = Column(Integer())
     scaledown_adjust = Column(Integer())
     scaledown_cooldown = Column(Integer())
-    scaledown_scale_period = Column(Integer())
+    scaledown_period = Column(Integer())
     scaledown_evaluation_periods = Column(Integer())
     scaledown_threshold = Column(Integer())
 
@@ -224,14 +224,13 @@ class NodePool(Base, TimestampMixin):
     )
 
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
-    project_id = Column(String(255))
-    user_id = Column(String(255))
-    stack_id = Column(String(255))
+    project_id = Column(String(36))
+    user_id = Column(String(36))
+    stack_id = Column(String(36))
     function_id = Column(String(36))
     nodepool_policy_id = Column(String(36))
     host = Column(String(255))
     name = Column(String(255))
     status = Column(String(255))
-    status_reason = Column(Text)
 
 

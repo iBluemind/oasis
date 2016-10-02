@@ -42,7 +42,7 @@ class FunctionStatus(fields.Enum):
         super(FunctionStatus, self).__init__(valid_values=FunctionStatus.ALL)
 
 
-class ContainerStatus(fields.Enum):
+class NodePoolStatus(fields.Enum):
     ALL = (
         ERROR, RUNNING, STOPPED, PAUSED, UNKNOWN,
     ) = (
@@ -50,19 +50,8 @@ class ContainerStatus(fields.Enum):
     )
 
     def __init__(self):
-        super(ContainerStatus, self).__init__(
-            valid_values=ContainerStatus.ALL)
-
-
-class FunctionType(fields.Enum):
-    ALL = (
-        KUBERNETES, SWARM, MESOS,
-    ) = (
-        'kubernetes', 'swarm', 'mesos',
-    )
-
-    def __init__(self):
-        super(FunctionType, self).__init__(valid_values=FunctionType.ALL)
+        super(NodePoolStatus, self).__init__(
+            valid_values=NodePoolStatus.ALL)
 
 
 class ListOfDictsField(fields.AutoTypedField):
@@ -72,10 +61,3 @@ class ListOfDictsField(fields.AutoTypedField):
 class FunctionStatusField(fields.BaseEnumField):
     AUTO_TYPE = FunctionStatus()
 
-
-class ContainerStatusField(fields.BaseEnumField):
-    AUTO_TYPE = ContainerStatus()
-
-
-class FunctionTypeField(fields.BaseEnumField):
-    AUTO_TYPE = FunctionType()
