@@ -36,7 +36,7 @@ class NodePoolPolicyPatchType(types.JsonPatchType):
 
     @staticmethod
     def internal_attrs():
-        internal_attrs = ['/min_size', '/max_size', '/scaleup_adjust',
+        internal_attrs = ['/name', '/min_size', '/max_size', '/scaleup_adjust',
                           '/scaleup_cooldown', '/scaleup_period',
                           '/scaleup_evaluation_periods', '/scaleup_threshold',
                           '/scaledown_adjust', '/scaledown_cooldown',
@@ -53,6 +53,8 @@ class NodePoolPolicy(base.APIBase):
     """
 
     id = types.uuid
+
+    name = wtypes.text
 
     min_size = wtypes.IntegerType(minimum=1)
 
@@ -107,6 +109,7 @@ class NodePoolPolicy(base.APIBase):
     @classmethod
     def sample(cls, expand=True):
         sample = cls(id='27e3199e-d5bf-907e-b517-fb518e17f34c',
+                     name='test',
                      min_size=0,
                      max_size=0,
                      scaleup_adjust=0,
@@ -243,17 +246,11 @@ class NodePoolPoliciesController(rest.RestController):
         policy.enforce(context, 'nodepool_policy:create',
                        action='nodepool_policy:create')
         nodepool_policy_dict = nodepool_policy.as_dict()
-        # nodepool_policy_dict['stack_id'] = context.stack_id
-        nodepool_policy_dict['project_id'] = context.project_id
-        nodepool_policy_dict['user_id'] = context.user_id
-        if nodepool_policy_dict.get('name') is None:
-            nodepool_policy_dict['name'] = None
-        if nodepool_policy_dict.get('body') is None:
-            nodepool_policy_dict['body'] = None
+
+        print nodepool_policy
+        print nodepool_policy_dict
 
         nodepool_policy = objects.NodePoolPolicy(context, **nodepool_policy_dict)
-
-        nodepool_policy.create()
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('nodepool_policies',
                                                  nodepool_policy.id)

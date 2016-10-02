@@ -54,21 +54,21 @@ class NodePool(base.APIBase):
 
     id = types.uuid
 
-    project_id = wsme.text
+    project_id = types.uuid
 
-    user_id = wsme.text
+    user_id = types.uuid
 
-    stack_id = wsme.text
+    stack_id = types.uuid
 
-    function_id = wsme.text
+    function_id = types.uuid
 
-    nodepool_policy_id = wsme.text
+    nodepool_policy_id = types.uuid
 
-    host = wsme.text
+    host = wtypes.StringType(min_length=1, max_length=255)
 
-    name = wsme.text
+    name = wtypes.StringType(min_length=1, max_length=255)
 
-    status = wsme.text
+    status = wtypes.StringType(min_length=1, max_length=255)
 
     def __init__(self, **kwargs):
         super(NodePool, self).__init__()

@@ -40,7 +40,7 @@ class NodePool(base.OasisPersistentObject, base.OasisObject,
         'host': fields.StringField(nullable=True),
         'name': fields.StringField(nullable=True),
         'status': fields.StringField(nullable=True),
-        'status_reason': fields.TextField(nullable=True),
+        'status_reason': fields.StringField(nullable=True),
     }
 
     @staticmethod

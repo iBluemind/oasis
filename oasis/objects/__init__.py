@@ -18,7 +18,7 @@ from oasis.objects import nodepool_policy
 
 Function = function.Function
 NodePool = nodepool.NodePool
-NodePoolPolicy = nodepool_policy
+NodePoolPolicy = nodepool_policy.NodePoolPolicy
 
 __all__ = (Function,
            NodePool,

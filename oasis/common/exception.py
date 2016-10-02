@@ -329,3 +329,7 @@ class QuotaAlreadyExists(Conflict):
 class RegionsListFailed(OasisException):
     message = _("Failed to list regions.")
 
+
+class NodePoolPolicyAlreadyExists(Conflict):
+    message = _("A nodepool policy with UUID %(uuid)s already exists.")
+

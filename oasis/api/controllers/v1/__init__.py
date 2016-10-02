@@ -27,6 +27,8 @@ from wsme import types as wtypes
 from oasis.api.controllers import base as controllers_base
 from oasis.api.controllers import link
 from oasis.api.controllers.v1 import function
+from oasis.api.controllers.v1 import nodepool
+from oasis.api.controllers.v1 import nodepool_policy
 from oasis.api import expose
 from oasis.i18n import _
 
@@ -74,6 +76,10 @@ class V1(controllers_base.APIBase):
     functions = [link.Link]
     """Links to the bays resource"""
 
+    nodepools = [link.Link]
+
+    nodepool_policies = [link.Link]
+
     @staticmethod
     def convert():
         v1 = V1()
@@ -99,6 +105,18 @@ class V1(controllers_base.APIBase):
                                        pecan.request.host_url,
                                        'functions', '',
                                        bookmark=True)]
+        v1.nodepools = [link.Link.make_link('self', pecan.request.host_url,
+                                            'nodepools', ''),
+                    link.Link.make_link('bookmark',
+                                        pecan.request.host_url,
+                                        'nodepools', '',
+                                        bookmark=True)]
+        v1.nodepool_policies = [link.Link.make_link('self', pecan.request.host_url,
+                                                    'nodepool_policies', ''),
+                    link.Link.make_link('bookmark',
+                                        pecan.request.host_url,
+                                        'nodepool_policies', '',
+                                    bookmark=True)]
         return v1
 
 
@@ -106,6 +124,8 @@ class Controller(rest.RestController):
     """Version 1 API controller root."""
 
     functions = function.FunctionsController()
+    nodepools = nodepool.NodePoolsController()
+    nodepool_policies = nodepool_policy.NodePoolPoliciesController()
 
     @expose.expose(V1)
     def get(self):

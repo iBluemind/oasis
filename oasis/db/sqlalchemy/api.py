@@ -246,3 +246,16 @@ class Connection(api.Connection):
 
             ref.update(values)
         return ref
+
+    def create_nodepool_policy(self, values):
+        # ensure defaults are present for new funtions
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        nodepool_policy = models.NodePoolPolicy()
+        nodepool_policy.update(values)
+        try:
+            nodepool_policy.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.NodePoolPolicyAlreadyExists(uuid=values['id'])
+        return nodepool_policy

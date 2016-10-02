@@ -18,7 +18,7 @@ from oslo_versionedobjects import fields
 from oasis.common import exception
 from oasis.common import utils
 from oasis.db import api as dbapi
-from oasis.objects import base, NodePool
+from oasis.objects import base
 from oasis.objects import fields as m_fields
 
 
@@ -32,6 +32,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
 
     fields = {
         'id': fields.StringField(),
+        'name': fields.StringField(),
         'min_size': fields.IntegerField(nullable=True),
         'max_size': fields.IntegerField(nullable=True),
         'scaleup_adjust': fields.IntegerField(nullable=True),
@@ -63,7 +64,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
     @staticmethod
     def _from_db_object_list(db_objects, cls, context):
         """Converts a list of database entities to a list of formal objects."""
-        return [NodePool._from_db_object(cls(context), obj) for obj in db_objects]
+        return [NodePoolPolicy._from_db_object(cls(context), obj) for obj in db_objects]
 
     @base.remotable_classmethod
     def get(cls, context, nodepool_policy_id):
@@ -89,7 +90,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
         :returns: a :class:`NodePool` object.
         """
         db_nodepool_policy = cls.dbapi.get_nodepool_policy_by_id(context, nodepool_policy_id)
-        nodepool_policy = NodePool._from_db_object(cls(context), db_nodepool_policy)
+        nodepool_policy = NodePoolPolicy._from_db_object(cls(context), db_nodepool_policy)
         return nodepool_policy
 
     @base.remotable_classmethod
@@ -101,7 +102,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
         :returns: a :class:`NodePool` object.
         """
         db_nodepool_policy = cls.dbapi.get_nodepool_policy_by_uuid(context, uuid)
-        nodepool_policy = NodePool._from_db_object(cls(context), db_nodepool_policy)
+        nodepool_policy = NodePoolPolicy._from_db_object(cls(context), db_nodepool_policy)
         return nodepool_policy
 
     @base.remotable_classmethod
@@ -113,7 +114,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
         :returns: a :class:`NodePool` object.
         """
         db_nodepool_policy = cls.dbapi.get_nodepool_policy_by_name(context, name)
-        nodepool_policy = NodePool._from_db_object(cls(context), db_nodepool_policy)
+        nodepool_policy = NodePoolPolicy._from_db_object(cls(context), db_nodepool_policy)
         return nodepool_policy
 
     @base.remotable_classmethod
@@ -138,7 +139,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
                                          sort_key=sort_key,
                                          sort_dir=sort_dir,
                                          filters=filters)
-        return NodePool._from_db_object_list(db_nodepool_policies, cls, context)
+        return NodePoolPolicy._from_db_object_list(db_nodepool_policies, cls, context)
 
     @base.remotable
     def create(self, context=None):
@@ -172,7 +173,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
 
     @base.remotable
     def save(self, context=None):
-        """Save updates to this NodePool.
+        """Save updates to this NodePoolPolicy.
 
         Updates will be made column by column based on the result
         of self.what_changed().
@@ -191,7 +192,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
 
     @base.remotable
     def refresh(self, context=None):
-        """Loads updates for this NodePool.
+        """Loads updates for this NodePoolPolicy.
 
         Loads a nodepool_policy with the same uuid from the database and
         checks for updated attributes. Updates are applied from
