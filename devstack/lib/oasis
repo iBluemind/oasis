@@ -282,7 +282,7 @@ function start_oasis_api {
 }
 
 
-# configure_iptables() - Configure the IP table rules for Magnum
+# configure_iptables() - Configure the IP table rules for Oasis
 function configure_iptables {
     if [ "$OASIS_CONFIGURE_IPTABLES" != "False" ]; then
         ROUTE_TO_INTERNET=$(ip route get 8.8.8.8)

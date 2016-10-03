@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-"""Policy Engine For magnum."""
+"""Policy Engine For oasis."""
 
 import decorator
 from oslo_config import cfg
@@ -21,7 +21,7 @@ from oslo_log import log as logging
 from oslo_policy import policy
 import pecan
 
-from magnum.common import exception
+from oasis.common import exception
 
 
 _ENFORCER = None
@@ -106,7 +106,7 @@ def enforce_wsgi(api_name, act=None):
         :param act: The function name of wsgi action.
 
        example:
-           from magnum.common import policy
+           from Oasis.common import policy
            class BaysController(rest.RestController):
                ....
                @policy.enforce_wsgi("bay", "delete")

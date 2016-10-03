@@ -208,7 +208,7 @@ class KeystoneClientV3(object):
 
     def get_validate_region_name(self, region_name):
         if region_name is None:
-            message = _("region_name needs to be configured in magnum.conf")
+            message = _("region_name needs to be configured in oasis.conf")
             raise exception.InvalidParameterValue(message)
         """matches the region of a public endpoint for the Keystone
         service."""

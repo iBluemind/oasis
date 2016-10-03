@@ -31,7 +31,7 @@ from oslo_config import cfg
 import oslo_messaging as messaging
 from oslo_serialization import jsonutils
 
-from oasis.common import context as magnum_context
+from oasis.common import context as oasis_context
 from oasis.common import exception
 
 
@@ -44,7 +44,7 @@ ALLOWED_EXMODS = [
 ]
 EXTRA_EXMODS = []
 
-# NOTE(lucasagomes): The magnum.openstack.common.rpc entries are for
+# NOTE(lucasagomes): The oasis.openstack.common.rpc entries are for
 # backwards compat with IceHouse rpc_backend configuration values.
 TRANSPORT_ALIASES = {
     'oasis.openstack.common.rpc.impl_kombu': 'rabbit',
@@ -116,7 +116,7 @@ class RequestContextSerializer(messaging.Serializer):
         return context.to_dict()
 
     def deserialize_context(self, context):
-        return magnum_context.RequestContext.from_dict(context)
+        return oasis_context.RequestContext.from_dict(context)
 
 
 def get_transport_url(url_str=None):
