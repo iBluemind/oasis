@@ -31,7 +31,7 @@ class OasisServicePeriodicTasks(periodic_task.PeriodicTasks):
     '''
 
     def __init__(self, conf, binary):
-        self.magnum_service_ref = None
+        self.oasis_service_ref = None
         self.host = conf.host
         self.binary = binary
         super(OasisServicePeriodicTasks, self).__init__(conf)

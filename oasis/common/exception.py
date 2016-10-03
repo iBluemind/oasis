@@ -39,8 +39,8 @@ try:
     CONF.import_opt('fatal_exception_format_errors',
                     'oslo_versionedobjects.exception')
 except cfg.NoSuchOptError as e:
-    # Note:work around for magnum run against master branch
-    # in devstack gate job, as magnum not branched yet
+    # Note:work around for oasis run against master branch
+    # in devstack gate job, as oasis not branched yet
     # verisonobjects kilo/master different version can
     # cause issue here. As it changed import group. So
     # add here before branch to prevent gate failure.

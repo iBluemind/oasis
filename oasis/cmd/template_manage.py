@@ -11,7 +11,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-"""Starter script for magnum-template-manage."""
+"""Starter script for oasis-template-manage."""
 import sys
 
 from cliff import app

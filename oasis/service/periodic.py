@@ -55,7 +55,7 @@ class OasisPeriodicTasks(periodic_task.PeriodicTasks):
       Exception.
     - The periodic tasks here does not necessarily need another
       try/catch block. The present try/catch block here helps putting
-      magnum-periodic-task-specific log/error message.
+      oasis-periodic-task-specific log/error message.
 
     '''
 

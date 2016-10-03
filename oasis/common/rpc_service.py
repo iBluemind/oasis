@@ -33,12 +33,12 @@ from oasis.objects import base as objects_base
 eventlet.monkey_patch()
 
 # NOTE(asalkeld):
-# The magnum.openstack.common.rpc entries are for compatibility
+# The oasis.openstack.common.rpc entries are for compatibility
 # with devstack rpc_backend configuration values.
 TRANSPORT_ALIASES = {
-    'magnum.openstack.common.rpc.impl_kombu': 'rabbit',
-    'magnum.openstack.common.rpc.impl_qpid': 'qpid',
-    'magnum.openstack.common.rpc.impl_zmq': 'zmq',
+    'oasis.openstack.common.rpc.impl_kombu': 'rabbit',
+    'oasis.openstack.common.rpc.impl_qpid': 'qpid',
+    'oasis.openstack.common.rpc.impl_zmq': 'zmq',
 }
 
 # periodic_opts = [

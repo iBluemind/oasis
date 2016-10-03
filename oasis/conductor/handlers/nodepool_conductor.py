@@ -190,7 +190,7 @@ class Handler(object):
         # NOTE(sdake): This will execute a stack_delete operation.  This will
         # Ignore HTTPNotFound exceptions (stack wasn't present).  In the case
         # that Heat couldn't find the stack representing the bay, likely a user
-        # has deleted the stack outside the context of Magnum.  Therefore the
+        # has deleted the stack outside the context of Oasis.  Therefore the
         # contents of the bay are forever lost.
         #
         # If the exception is unhandled, the original exception will be raised.

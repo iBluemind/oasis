@@ -18,14 +18,13 @@ from pecan import rest
 import wsme
 from wsme import types as wtypes
 
-from oasis.api import attr_validator
 from oasis.api.controllers import base
 from oasis.api.controllers import link
 from oasis.api.controllers.v1 import collection
 from oasis.api.controllers.v1 import types
 from oasis.api import expose
 from oasis.api import utils as api_utils
-from oasis.api.validation import validate_bay_properties
+# from oasis.api.validation import validate_function_properties
 from oasis.common import exception
 from oasis.common import policy
 from oasis import objects
@@ -297,7 +296,7 @@ class NodePoolPoliciesController(rest.RestController):
 
         delta = nodepool_policy.obj_what_changed()
 
-        validate_bay_properties(delta)
+        # validate_function_properties(delta)
 
         res_nodepool_policy = pecan.request.rpcapi.bay_update(nodepool_policy)
         return NodePoolPolicy.convert_with_links(res_nodepool_policy)

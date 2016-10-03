@@ -72,7 +72,7 @@ class OutputMapping(object):
     """A mapping associating heat outputs and bay attr.
 
     An OutputMapping is an association of a Heat output with a key
-    Magnum understands.
+    Oasis understands.
     """
 
     def __init__(self, heat_output, node_attr=None):
@@ -100,9 +100,9 @@ class OutputMapping(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class TemplateDefinition(object):
-    '''A mapping between Magnum objects and Heat templates.
+    '''A mapping between Oasis objects and Heat templates.
 
-    A TemplateDefinition is essentially a mapping between Magnum objects
+    A TemplateDefinition is essentially a mapping between Oasis objects
     and Heat templates. Each TemplateDefinition has a mapping of Heat
     parameters.
     '''
