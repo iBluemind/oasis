@@ -72,11 +72,7 @@ class Function(base.APIBase):
     user_id = wsme.wsattr(wtypes.text, readonly=True)
     """Stack id of the heat stack"""
 
-    status = wtypes.Enum(str, *fields.FunctionStatus.ALL)
-    """Status of the function from the heat stack"""
-
-    status_reason = wtypes.text
-    """Status reason of the function from the heat stack"""
+    status = wtypes.text
 
     body = wtypes.text
     """Url used for function node discovery"""

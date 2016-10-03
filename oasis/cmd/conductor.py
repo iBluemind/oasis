@@ -25,8 +25,8 @@ from oslo_service import service
 from oasis.common import rpc_service
 from oasis.common import service as oasis_service
 from oasis.common import short_id
-from oasis.conductor.handlers import function_conductor
 from oasis.conductor.handlers import conductor_listener
+from oasis.conductor.handlers import nodepool_conductor
 from oasis.i18n import _LE
 from oasis.i18n import _LI
 from oasis import version
@@ -47,8 +47,8 @@ def main():
 
     conductor_id = short_id.generate_id()
     endpoints = [
-        function_conductor.Handler(),
         conductor_listener.Handler(),
+        nodepool_conductor.Handler()
     ]
 
     server = rpc_service.Service.create(cfg.CONF.conductor.topic,

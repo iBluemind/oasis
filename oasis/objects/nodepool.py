@@ -39,7 +39,8 @@ class NodePool(base.OasisPersistentObject, base.OasisObject,
         'nodepool_policy_id': fields.StringField(nullable=True),
         'host': fields.StringField(nullable=True),
         'name': fields.StringField(nullable=True),
-        'status': fields.StringField(nullable=True),
+        'status': m_fields.NodePoolStatusField(nullable=True),
+        'status_reason': fields.StringField(nullable=True),
     }
 
     @staticmethod

@@ -337,3 +337,6 @@ class NodePoolPolicyAlreadyExists(Conflict):
 class NodePoolAlreadyExists(Conflict):
     message = _("A nodepool with UUID %(uuid)s already exists.")
 
+
+class NodePoolNotFound(ResourceNotFound):
+    message = _("NodePool %(nodepool)s could not be found.")

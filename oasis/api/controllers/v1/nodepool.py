@@ -68,7 +68,11 @@ class NodePool(base.APIBase):
 
     name = wtypes.StringType(min_length=1, max_length=255)
 
-    status = wtypes.StringType(min_length=1, max_length=255)
+    status = wtypes.Enum(str, *fields.NodePoolStatus.ALL)
+    """Status of the function from the heat stack"""
+
+    status_reason = wtypes.text
+    """Status reason of the function from the heat stack"""
 
     def __init__(self, **kwargs):
         super(NodePool, self).__init__()
@@ -234,7 +238,7 @@ class NodePoolsController(rest.RestController):
         nodepool = objects.NodePool(context, **nodepool_dict)
         nodepool.create()
 
-        pecan.request.rpcapi.nodepool_create(nodepool)
+        pecan.request.rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('nodepools',

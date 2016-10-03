@@ -15,7 +15,7 @@
 from oslo_versionedobjects import fields
 
 
-class FunctionStatus(fields.Enum):
+class NodePoolStatus(fields.Enum):
     CREATE_IN_PROGRESS = 'CREATE_IN_PROGRESS'
     CREATE_FAILED = 'CREATE_FAILED'
     CREATE_COMPLETE = 'CREATE_COMPLETE'
@@ -39,10 +39,10 @@ class FunctionStatus(fields.Enum):
            SNAPSHOT_COMPLETE, CHECK_COMPLETE, ADOPT_COMPLETE)
 
     def __init__(self):
-        super(FunctionStatus, self).__init__(valid_values=FunctionStatus.ALL)
+        super(NodePoolStatus, self).__init__(valid_values=NodePoolStatus.ALL)
 
 
-class NodePoolStatus(fields.Enum):
+class FunctionStatus(fields.Enum):
     ALL = (
         ERROR, RUNNING, STOPPED, PAUSED, UNKNOWN,
     ) = (
@@ -50,14 +50,14 @@ class NodePoolStatus(fields.Enum):
     )
 
     def __init__(self):
-        super(NodePoolStatus, self).__init__(
-            valid_values=NodePoolStatus.ALL)
+        super(FunctionStatus, self).__init__(
+            valid_values=FunctionStatus.ALL)
 
 
 class ListOfDictsField(fields.AutoTypedField):
     AUTO_TYPE = fields.List(fields.Dict(fields.FieldType()))
 
 
-class FunctionStatusField(fields.BaseEnumField):
-    AUTO_TYPE = FunctionStatus()
+class NodePoolStatusField(fields.BaseEnumField):
+    AUTO_TYPE = NodePoolStatus()
 

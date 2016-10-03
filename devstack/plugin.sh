@@ -8,20 +8,12 @@ echo_summary "oasis's plugin.sh was called..."
 source $DEST/oasis/devstack/lib/oasis
 (set -o posix; set)
 
-if is_service_enabled m-api m-cond; then
+if is_service_enabled o-api o-cond; then
     if [[ "$1" == "stack" && "$2" == "install" ]]; then
         echo_summary "Installing oasis"
         install_oasis
-
-        # add image to glance
-        if [[ "$ENABLED_SERVICES" =~ 'm-api' ]]; then
-            MAGNUM_GUEST_IMAGE_URL=${MAGNUM_GUEST_IMAGE_URL:-"https://fedorapeople.org/groups/oasis/fedora-21-atomic-5.qcow2"}
-            IMAGE_URLS+=",${MAGNUM_GUEST_IMAGE_URL}"
-        fi
-
-        LIBS_FROM_GIT="${LIBS_FROM_GIT},python-oasisclient"
-
-        install_oasisclient
+#        LIBS_FROM_GIT="${LIBS_FROM_GIT},python-oasisclient"
+#        install_oasisclient
         cleanup_oasis
     elif [[ "$1" == "stack" && "$2" == "post-config" ]]; then
         echo_summary "Configuring oasis"
@@ -37,13 +29,13 @@ if is_service_enabled m-api m-cond; then
     elif [[ "$1" == "stack" && "$2" == "extra" ]]; then
         # Initialize oasis
         init_oasis
-        oasis_register_image
+#        oasis_register_image
 
         # Start the oasis API and oasis taskmgr components
         echo_summary "Starting oasis"
         start_oasis
 
-        configure_iptables
+#        configure_iptables
     fi
 
     if [[ "$1" == "unstack" ]]; then

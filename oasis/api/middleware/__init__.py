@@ -10,11 +10,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# from testapi.api.middleware import auth_token
+from oasis.api.middleware import auth_token
 from oasis.api.middleware import parsable_error
 
 
-# AuthTokenMiddleware = auth_token.AuthTokenMiddleware
+AuthTokenMiddleware = auth_token.AuthTokenMiddleware
 ParsableErrorMiddleware = parsable_error.ParsableErrorMiddleware
 
 __all__ = (ParsableErrorMiddleware,)

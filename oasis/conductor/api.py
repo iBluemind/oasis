@@ -12,50 +12,35 @@
 
 """API for interfacing with Oasis Backend."""
 from oslo_config import cfg
-
 from oasis.common import rpc_service
 
 
-# The Backend API class serves as a AMQP client for communicating
-# on a topic exchange specific to the conductors.  This allows the ReST
-# API to trigger operations on the conductors
-
 class API(rpc_service.API):
-    def __init__(self, transport=None, context=None, topic=None):
+    def __init__(self, transport=None, topic=None, context=None):
+        self.context = context
         if topic is None:
             cfg.CONF.import_opt('topic', 'oasis.conductor.config',
                                 group='conductor')
-        super(API, self).__init__(transport, context,
-                                  topic=cfg.CONF.conductor.topic)
+        super(API, self).__init__(transport, topic=cfg.CONF.conductor.topic)
 
-    # Function Operations
-    def function_create(self, function, function_create_timeout):
-        return self._call('function_create', function=function,
-                          function_create_timeout=function_create_timeout)
+    def nodepool_create(self, nodepool, nodepool_create_timeout):
+        return self._call('nodepool_create', nodepool=nodepool,
+                          nodepool_create_timeout=nodepool_create_timeout,
+                          context=self.context)
 
-    def function_delete(self, function_id):
-        return self._call('function_delete', function_id=function_id)
+    def nodepool_delete(self, nodepool_id):
+        return self._call('nodepool_delete', nodepool_id=nodepool_id,
+                          context=self.context)
 
-    def function_update(self, function_id):
-        return self._call('function_update', function_id=function_id)
-
-    # Nodepool Operations
-    def nodepool_create(self, function, function_create_timeout):
-        return self._call('function_create', function=function,
-                          function_create_timeout=function_create_timeout)
-
-    def nodepool_delete(self, function_id):
-        return self._call('function_delete', function_id=function_id)
-
-    def nodepool_update(self, function_id):
-        return self._call('function_update', function_id=function_id)
-
+    def nodepool_update(self, nodepool_id):
+        return self._call('nodepool_update', nodepool_id=nodepool_id,
+                          context=self.context)
 
 
 class ListenerAPI(rpc_service.API):
     def __init__(self, context=None, topic=None, server=None, timeout=None):
-        super(ListenerAPI, self).__init__(context=context, topic=topic,
-                                          server=server, timeout=timeout)
+        self.context = context
+        super(ListenerAPI, self).__init__(topic=topic, server=server, timeout=timeout)
 
     def ping_conductor(self):
-        return self._call('ping_conductor')
+        return self._call('ping_conductor', context=self.context)

@@ -47,12 +47,12 @@ EXTRA_EXMODS = []
 # NOTE(lucasagomes): The magnum.openstack.common.rpc entries are for
 # backwards compat with IceHouse rpc_backend configuration values.
 TRANSPORT_ALIASES = {
-    'magnum.openstack.common.rpc.impl_kombu': 'rabbit',
-    'magnum.openstack.common.rpc.impl_qpid': 'qpid',
-    'magnum.openstack.common.rpc.impl_zmq': 'zmq',
-    'magnum.rpc.impl_kombu': 'rabbit',
-    'magnum.rpc.impl_qpid': 'qpid',
-    'magnum.rpc.impl_zmq': 'zmq',
+    'oasis.openstack.common.rpc.impl_kombu': 'rabbit',
+    'oasis.openstack.common.rpc.impl_qpid': 'qpid',
+    'oasis.openstack.common.rpc.impl_zmq': 'zmq',
+    'oasis.rpc.impl_kombu': 'rabbit',
+    'oasis.rpc.impl_qpid': 'qpid',
+    'oasis.rpc.impl_zmq': 'zmq',
 }
 
 

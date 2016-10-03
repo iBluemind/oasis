@@ -89,7 +89,7 @@ class Service(service.Service):
 
 
 class API(object):
-    def __init__(self, transport=None, context=None, topic=None, server=None,
+    def __init__(self, transport=None, topic=None, server=None,
                  timeout=None):
         serializer = rpc.RequestContextSerializer(
             objects_base.OasisObjectSerializer())
@@ -98,7 +98,6 @@ class API(object):
             transport = messaging.get_transport(cfg.CONF,
                                                 allowed_remote_exmods=exmods,
                                                 aliases=TRANSPORT_ALIASES)
-        self._context = context
         if topic is None:
             topic = ''
         target = messaging.Target(topic=topic, server=server)
@@ -106,11 +105,11 @@ class API(object):
                                            serializer=serializer,
                                            timeout=timeout)
 
-    def _call(self, method, *args, **kwargs):
-        return self._client.call(self._context, method, *args, **kwargs)
+    def _call(self, method, context, *args, **kwargs):
+        return self._client.call(context, method, *args, **kwargs)
 
-    def _cast(self, method, *args, **kwargs):
-        self._client.cast(self._context, method, *args, **kwargs)
+    def _cast(self, method, context, *args, **kwargs):
+        self._client.cast(context, method, *args, **kwargs)
 
     def echo(self, message):
         self._cast('echo', message=message)

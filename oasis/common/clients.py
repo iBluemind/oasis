@@ -12,16 +12,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from barbicanclient import client as barbicanclient
 from glanceclient import client as glanceclient
 from heatclient import client as heatclient
 from neutronclient.v2_0 import client as neutronclient
 from novaclient import client as novaclient
 from oslo_config import cfg
 
-from magnum.common import exception
-from magnum.common import keystone
-from magnum.i18n import _
+from oasis.common import exception
+from oasis.common import keystone
+from oasis.i18n import _
 
 common_security_opts = [
     cfg.StrOpt('ca_file',
@@ -35,16 +34,6 @@ common_security_opts = [
                 default=False,
                 help=_("If set, then the server's certificate will not "
                        "be verified."))]
-
-magnum_client_opts = [
-    cfg.StrOpt('region_name',
-               help=_('Region in Identity service catalog to use for '
-                      'communication with the OpenStack service.')),
-    cfg.StrOpt('endpoint_type',
-               default='publicURL',
-               help=_(
-                   'Type of endpoint in Identity service catalog to use '
-                   'for communication with the OpenStack service.'))]
 
 heat_client_opts = [
     cfg.StrOpt('region_name',
@@ -71,16 +60,6 @@ glance_client_opts = [
     cfg.StrOpt('api_version',
                default='2',
                help=_('Version of Glance API to use in glanceclient.'))]
-
-barbican_client_opts = [
-    cfg.StrOpt('region_name',
-               help=_('Region in Identity service catalog to use for '
-                      'communication with the OpenStack service.')),
-    cfg.StrOpt('endpoint_type',
-               default='publicURL',
-               help=_(
-                   'Type of endpoint in Identity service catalog to use '
-                   'for communication with the OpenStack service.'))]
 
 nova_client_opts = [
     cfg.StrOpt('region_name',
@@ -111,10 +90,8 @@ cinder_client_opts = [
                       'communication with the OpenStack service.'))]
 
 
-cfg.CONF.register_opts(magnum_client_opts, group='magnum_client')
 cfg.CONF.register_opts(heat_client_opts, group='heat_client')
 cfg.CONF.register_opts(glance_client_opts, group='glance_client')
-cfg.CONF.register_opts(barbican_client_opts, group='barbican_client')
 cfg.CONF.register_opts(nova_client_opts, group='nova_client')
 cfg.CONF.register_opts(neutron_client_opts, group='neutron_client')
 cfg.CONF.register_opts(cinder_client_opts, group='cinder_client')
@@ -133,19 +110,11 @@ class OpenStackClients(object):
         self._keystone = None
         self._heat = None
         self._glance = None
-        self._barbican = None
         self._nova = None
         self._neutron = None
 
     def url_for(self, **kwargs):
         return self.keystone().client.service_catalog.url_for(**kwargs)
-
-    def magnum_url(self):
-        endpoint_type = self._get_client_option('magnum', 'endpoint_type')
-        region_name = self._get_client_option('magnum', 'region_name')
-        return self.url_for(service_type='container',
-                            endpoint_type=endpoint_type,
-                            region_name=region_name)
 
     def cinder_region_name(self):
         cinder_region_name = self._get_client_option('cinder', 'region_name')
@@ -221,22 +190,6 @@ class OpenStackClients(object):
         self._glance = glanceclient.Client(glanceclient_version, **args)
 
         return self._glance
-
-    @exception.wrap_keystone_exception
-    def barbican(self):
-        if self._barbican:
-            return self._barbican
-
-        endpoint_type = self._get_client_option('barbican', 'endpoint_type')
-        region_name = self._get_client_option('barbican', 'region_name')
-        endpoint = self.url_for(service_type='key-manager',
-                                endpoint_type=endpoint_type,
-                                region_name=region_name)
-        session = self.keystone().session
-        self._barbican = barbicanclient.Client(session=session,
-                                               endpoint=endpoint)
-
-        return self._barbican
 
     @exception.wrap_keystone_exception
     def nova(self):

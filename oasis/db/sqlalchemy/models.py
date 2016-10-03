@@ -115,7 +115,6 @@ class Function(Base, TimestampMixin):
     stack_id = Column(String(36))
     user_id = Column(String(36))
     status = Column(String(20))
-    status_reason = Column(Text)
     name = Column(String(255))
     desc = Column(Text)
     body = Column(Text)
@@ -232,6 +231,7 @@ class NodePool(Base, TimestampMixin):
     nodepool_policy_id = Column(String(36))
     host = Column(String(255))
     name = Column(String(255))
-    status = Column(String(255))
+    status = Column(String(20))
+    status_reason = Column(Text)
 
 

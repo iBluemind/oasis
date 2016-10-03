@@ -75,7 +75,7 @@ fi
 # Test if any oasis services are enabled
 # is_oasis_enabled
 function is_oasis_enabled {
-    [[ ,${ENABLED_SERVICES} =~ ,"m-" ]] && return 0
+    [[ ,${ENABLED_SERVICES} =~ ,"o-" ]] && return 0
     return 1
 }
 # cleanup_oasis() - Remove residual data files, anything left over from previous
@@ -107,20 +107,18 @@ function configure_oasis {
 # ------------------------------------------------------------------
 # SERVICE_PROJECT_NAME  oasis         service
 function create_oasis_accounts {
-
     create_service_user "oasis" "admin"
 
     if [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
 
         local oasis_service=$(get_or_create_service "oasis" \
-            "container" "Magnum Container Service")
+            "function" "Oasis Function Service")
         get_or_create_endpoint $oasis_service \
             "$REGION_NAME" \
             "$OASIS_SERVICE_PROTOCOL://$OASIS_SERVICE_HOST:$OASIS_SERVICE_PORT/v1" \
             "$OASIS_SERVICE_PROTOCOL://$OASIS_SERVICE_HOST:$OASIS_SERVICE_PORT/v1" \
             "$OASIS_SERVICE_PROTOCOL://$OASIS_SERVICE_HOST:$OASIS_SERVICE_PORT/v1"
     fi
-
 }
 
 # create_oasis_conf() - Create a new oasis.conf file
@@ -185,18 +183,6 @@ function create_oasis_conf {
         iniset $OASIS_CONF oslo_messaging_notifications driver "messaging"
     fi
 
-    if is_service_enabled barbican; then
-        iniset $OASIS_CONF certificates cert_manager_type "barbican"
-    else
-        OASIS_LOCAL_CERT_DIR=${OASIS_LOCAL_CERT_DIR:-/var/lib/oasis/certificates/}
-        if [[ ! -d $OASIS_LOCAL_CERT_DIR ]]; then
-            sudo mkdir -p $OASIS_LOCAL_CERT_DIR
-            sudo chown $STACK_USER $OASIS_LOCAL_CERT_DIR
-        fi
-        iniset $OASIS_CONF certificates storage_path "$OASIS_LOCAL_CERT_DIR"
-        iniset $OASIS_CONF certificates cert_manager_type "local"
-    fi
-
     trustee_domain_id=$(get_or_create_domain oasis 'Owns users and projects created by oasis')
     trustee_domain_admin_id=$(get_or_create_user trustee_domain_admin $OASIS_TRUSTEE_DOMAIN_ADMIN_PASSWORD $trustee_domain_id)
     openstack --os-auth-url $KEYSTONE_SERVICE_URI_V3 \
@@ -232,7 +218,7 @@ function create_oasis_cache_dir {
 # init_oasis() - Initialize databases, etc.
 function init_oasis {
     # Only do this step once on the API node for an entire cluster.
-    if is_service_enabled $DATABASE_BACKENDS && is_service_enabled m-api; then
+    if is_service_enabled $DATABASE_BACKENDS && is_service_enabled o-api; then
         # (Re)create oasis database
         recreate_database oasis
 
@@ -282,7 +268,7 @@ function start_oasis_api {
         service_protocol="http"
     fi
 
-    run_process m-api "$OASIS_BIN_DIR/oasis-api"
+    run_process o-api "$OASIS_BIN_DIR/oasis-api"
     echo "Waiting for oasis-api to start..."
     if ! wait_for_service $SERVICE_TIMEOUT $service_protocol://$OASIS_SERVICE_HOST:$service_port; then
         die $LINENO "oasis-api did not start"
@@ -302,7 +288,7 @@ function configure_iptables {
         ROUTE_TO_INTERNET=$(ip route get 8.8.8.8)
         OBOUND_DEV=$(echo ${ROUTE_TO_INTERNET#*dev} | awk '{print $1}')
         sudo iptables -t nat -A POSTROUTING -o $OBOUND_DEV -j MASQUERADE
-        # bay nodes will access m-api (port $OASIS_SERVICE_PORT) to get CA certificate.
+        # bay nodes will access o-api (port $OASIS_SERVICE_PORT) to get CA certificate.
         sudo iptables -I INPUT -d $HOST_IP -p tcp --dport $OASIS_SERVICE_PORT -j ACCEPT || true
     fi
 }
@@ -313,12 +299,12 @@ function start_oasis {
 
     # ``run_process`` checks ``is_service_enabled``, it is not needed here
     start_oasis_api
-    run_process m-cond "$OASIS_BIN_DIR/oasis-conductor"
+    run_process o-cond "$OASIS_BIN_DIR/oasis-conductor"
 }
 
 # stop_oasis() - Stop running processes (non-screen)
 function stop_oasis {
-    for serv in m-api m-cond; do
+    for serv in o-api o-cond; do
         stop_process $serv
     done
 }

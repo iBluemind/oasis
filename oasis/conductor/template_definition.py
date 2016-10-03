@@ -45,23 +45,19 @@ class ParameterMapping(object):
     Parameters can also be set as 'required'. If a required parameter
     isn't set, a RequiredArgumentNotProvided exception will be raised.
     """
-    def __init__(self, heat_param, node_attr=None,
+    def __init__(self, heat_param,
                  nodepool_attr=None,
                  required=False,
                  param_type=lambda x: x):
         self.heat_param = heat_param
-        self.node_attr = node_attr
         self.nodepool_attr = nodepool_attr
         self.required = required
         self.param_type = param_type
 
-    def set_param(self, params, node, nodepool):
+    def set_param(self, params, nodepool):
         value = None
 
-        if (self.node_attr and
-                    getattr(node, self.node_attr, None) is not None):
-            value = getattr(node, self.node_attr)
-        elif (self.nodepool_attr and
+        if (self.nodepool_attr and
                   getattr(nodepool, self.nodepool_attr, None) is not None):
             value = getattr(nodepool, self.nodepool_attr)
         elif self.required:
@@ -136,7 +132,7 @@ class TemplateDefinition(object):
                 return output
         return None
 
-    def get_params(self, context, node, nodepool, **kwargs):
+    def get_params(self, context, nodepool, **kwargs):
         """Pulls template parameters from Baymodel and/or Bay.
 
         :param context: Context to pull template parameters for
@@ -148,7 +144,7 @@ class TemplateDefinition(object):
         """
         template_params = dict()
         for mapping in self.param_mappings:
-            mapping.set_param(template_params, node, nodepool)
+            mapping.set_param(template_params, nodepool)
         if 'extra_params' in kwargs:
             template_params.update(kwargs.get('extra_params'))
         return template_params
@@ -173,8 +169,8 @@ class TemplateDefinition(object):
         for output in self.output_mappings:
             output.set_output(stack)
 
-    def extract_definition(self, context, node, nodepool, **kwargs):
-        return self.template_path, self.get_params(context, node, nodepool, **kwargs)
+    def extract_definition(self, context, nodepool, **kwargs):
+        return self.template_path, self.get_params(context, nodepool, **kwargs)
 
 
 class BaseTemplateDefinition(TemplateDefinition):
@@ -182,7 +178,7 @@ class BaseTemplateDefinition(TemplateDefinition):
     def template_path(self):
         pass
 
-    def get_params(self, context, node, nodepool, **kwargs):
+    def get_params(self, context, nodepool, **kwargs):
         extra_params = kwargs.pop('extra_params', {})
         extra_params['trustee_domain_id'] = CONF.trust.trustee_domain_id
         extra_params['trustee_user_id'] = context.trustee_user_id
@@ -192,7 +188,7 @@ class BaseTemplateDefinition(TemplateDefinition):
         extra_params['auth_url'] = context.auth_url
 
         return super(BaseTemplateDefinition,
-                     self).get_params(context, node, nodepool,
+                     self).get_params(context, nodepool,
                                       extra_params=extra_params,
                                       **kwargs)
 
@@ -222,7 +218,7 @@ class NodePoolTemplateDefinition(BaseTemplateDefinition):
         self.add_parameter('subnet', node_pool_attr='subnet')
         self.add_parameter('key_name', node_attr='key_name')
 
-    def get_params(self, context, node, nodepool, **kwargs):
+    def get_params(self, context, nodepool, **kwargs):
         extra_params = kwargs.pop('extra_params', {})
         # HACK(apmelton) - This uses the user's bearer token, ideally
         # it should be replaced with an actual trust token with only
@@ -235,6 +231,6 @@ class NodePoolTemplateDefinition(BaseTemplateDefinition):
         extra_params['region_name'] = osc.cinder_region_name()
 
         return super(NodePoolTemplateDefinition,
-                     self).get_params(context, node, nodepool,
+                     self).get_params(context, nodepool,
                                       extra_params=extra_params,
                                       **kwargs)
