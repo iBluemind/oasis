@@ -41,7 +41,8 @@ class Function(base.OasisPersistentObject, base.OasisObject,
         'trust_id': fields.StringField(nullable=True),
         'trustee_username': fields.StringField(nullable=True),
         'trustee_password': fields.StringField(nullable=True),
-        'trustee_user_id': fields.StringField(nullable=True)
+        'trustee_user_id': fields.StringField(nullable=True),
+        'endpoint_id': fields.StringField(nullable=True)
     }
 
     @staticmethod

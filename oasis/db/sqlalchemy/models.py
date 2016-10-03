@@ -122,6 +122,7 @@ class Function(Base, TimestampMixin):
     trustee_username = Column(String(255))
     trustee_user_id = Column(String(255))
     trustee_password = Column(String(255))
+    endpoint_id = Column(String(36))
 
 
 class Endpoint(Base, TimestampMixin):
