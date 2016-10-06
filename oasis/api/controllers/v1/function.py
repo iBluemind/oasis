@@ -253,7 +253,7 @@ class FunctionsController(rest.RestController):
 
         function = objects.Function(context, **function_dict)
 
-        pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
+        pecan.request.agent_rpcapi.function_create(function, function_create_timeout=1000)
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('functions',
@@ -295,7 +295,7 @@ class FunctionsController(rest.RestController):
 
         # validate_function_properties(delta)
 
-        res_function = pecan.request.rpcapi.function_update(function)
+        res_function = pecan.request.agent_rpcapi.function_update(function)
         return Function.convert_with_links(res_function)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
@@ -309,4 +309,4 @@ class FunctionsController(rest.RestController):
         policy.enforce(context, 'function:delete', function,
                        action='function:delete')
 
-        pecan.request.rpcapi.function_delete(function)
+        pecan.request.agent_rpcapi.function_delete(function)
