@@ -58,6 +58,14 @@ class Function(base.APIBase):
 
     name = wtypes.StringType(min_length=1, max_length=255)
     """Name of this function"""
+    desc = wtypes.StringType(min_length=1, max_length=255)
+    """Description of this function"""
+
+    endpoint_id = wtypes.StringType(min_length=1, max_length=255)
+    """Endpoint Id of this function"""
+
+    nodepool_id = wtypes.StringType(min_length=1, max_length=255)
+    """Nodepool Id of this function"""
 
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated function links"""
@@ -91,7 +99,8 @@ class Function(base.APIBase):
     def _convert_with_links(function, url, expand=True):
         if not expand:
             function.unset_fields_except(['id', 'name', 'project_id',
-                                     'status', 'status_reason',
+                                     'status', 'status_reason', 'desc',
+                                     'nodepool_id', 'endpoint_id', 'user_id',
                                      'body', 'stack_id'])
 
             function.links = [link.Link.make_link('self', url,
@@ -113,6 +122,9 @@ class Function(base.APIBase):
                      project_id='4a96ac4b-2447-43f1-8ca6-9fd6f36d146d',
                      user_id=2,
                      function_create_timeout=15,
+                     desc='example description',
+                     endpoint_id='123afsfrw34534terw',
+                     nodepool_id='13fgerg45tyerfger',
                      stack_id='49dc23f5-ffc9-40c3-9d34-7be7f9e34d63',
                      status=fields.FunctionStatus.CREATE_COMPLETE,
                      status_reason="CREATE completed successfully",
@@ -132,10 +144,10 @@ class FunctionCollection(collection.Collection):
         self._type = 'functions'
 
     @staticmethod
-    def convert_with_links(rpc_bays, limit, url=None, expand=False, **kwargs):
+    def convert_with_links(rpc_functions, limit, url=None, expand=False, **kwargs):
         collection = FunctionCollection()
-        collection.bays = [Function.convert_with_links(p, expand)
-                           for p in rpc_bays]
+        collection.functions = [Function.convert_with_links(p, expand)
+                           for p in rpc_functions]
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
@@ -156,26 +168,26 @@ class FunctionsController(rest.RestController):
     }
 
     def _get_functions_collection(self, marker, limit,
-                             sort_key, sort_dir, expand=False,
-                             resource_url=None):
+                                  sort_key, sort_dir, expand=False,
+                                  resource_url=None):
 
         limit = api_utils.validate_limit(limit)
         sort_dir = api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
-            marker_obj = objects.Function.get_by_uuid(pecan.request.context,
-                                                 marker)
+            marker_obj = objects.Function.get_by_id(pecan.request.context,
+                                                    marker)
 
         functions = objects.Function.list(pecan.request.context, limit,
-                                marker_obj, sort_key=sort_key,
-                                sort_dir=sort_dir)
+                                          marker_obj, sort_key=sort_key,
+                                          sort_dir=sort_dir)
 
         return FunctionCollection.convert_with_links(functions, limit,
-                                                url=resource_url,
-                                                expand=expand,
-                                                sort_key=sort_key,
-                                                sort_dir=sort_dir)
+                                                     url=resource_url,
+                                                     expand=expand,
+                                                     sort_key=sort_key,
+                                                     sort_dir=sort_dir)
 
     @expose.expose(FunctionCollection, types.uuid, int, wtypes.text,
                    wtypes.text)
@@ -246,20 +258,28 @@ class FunctionsController(rest.RestController):
 
         function_dict['project_id'] = context.project_id
         function_dict['user_id'] = context.user_id
+
         if function_dict.get('name') is None:
             function_dict['name'] = None
         if function_dict.get('body') is None:
             function_dict['body'] = None
+        if function_dict.get('desc') is None:
+            function_dict['desc'] = None
+        if function_dict.get('endpoint_id') is None:
+            function_dict['endpoint_id'] = None
+        if function_dict.get('nodepool_id') is None:
+            function_dict['nodepool_id'] = None
 
         function = objects.Function(context, **function_dict)
 
-        pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
+        function.create()
+
+        # pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
 
         # Set the HTTP Location Header
-        pecan.response.location = link.build_url('functions',
-                                                 function.id)
+        # pecan.response.location = link.build_url('functions',
+        #                                          function.id)
         return Function.convert_with_links(function)
-
 
     @wsme.validate(types.uuid, [FunctionPatchType])
     @expose.expose(Function, types.uuid_or_name, body=[FunctionPatchType])

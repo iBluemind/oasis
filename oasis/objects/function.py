@@ -38,12 +38,13 @@ class Function(base.OasisPersistentObject, base.OasisObject,
         'stack_id': fields.StringField(nullable=True),
         'status': fields.StringField(nullable=True),
         'body': fields.StringField(nullable=True),
+        'desc': fields.StringField(nullable=True),
         'trust_id': fields.StringField(nullable=True),
         'trustee_username': fields.StringField(nullable=True),
         'trustee_password': fields.StringField(nullable=True),
         'trustee_user_id': fields.StringField(nullable=True),
         'endpoint_id': fields.StringField(nullable=True),
-        'desc': fields.StringField(nullable=True)
+        'nodepool_id': fields.StringField(nullable=True),
     }
 
     @staticmethod

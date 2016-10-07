@@ -116,13 +116,14 @@ class Function(Base, TimestampMixin):
     user_id = Column(String(36))
     status = Column(String(20))
     name = Column(String(255))
-    desc = Column(Text)
     body = Column(Text)
+    desc = Column(Text)
+    nodepool_id = Column(String(36))
+    endpoint_id = Column(String(36))
     trust_id = Column(String(255))
     trustee_username = Column(String(255))
     trustee_user_id = Column(String(255))
     trustee_password = Column(String(255))
-    endpoint_id = Column(String(36))
 
 
 class Endpoint(Base, TimestampMixin):
