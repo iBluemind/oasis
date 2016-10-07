@@ -237,14 +237,14 @@ class NodePoolsController(rest.RestController):
         nodepool = objects.NodePool(context, **nodepool_dict)
         nodepool.create()
 
-        pecan.request.rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
+        pecan.request.conductor_rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('nodepools',
                                                  nodepool.id)
         return NodePool.convert_with_links(nodepool)
 
-        # res_nodepool = pecan.request.rpcapi.nodepool_create(nodepool,
+        # res_nodepool = pecan.request.conductor_rpcapi.nodepool_create(nodepool,
         #                                           nodepool.nodepool_create_timeout)
 
         # # Set the HTTP Location Header
@@ -285,7 +285,7 @@ class NodePoolsController(rest.RestController):
 
         # validate_function_properties(delta)
 
-        res_nodepool = pecan.request.rpcapi.nodepool_update(nodepool)
+        res_nodepool = pecan.request.conductor_rpcapi.nodepool_update(nodepool)
 
         return NodePool.convert_with_links(res_nodepool)
 
@@ -300,4 +300,4 @@ class NodePoolsController(rest.RestController):
         policy.enforce(context, 'nodepool:delete', nodepool,
                        action='nodepool:delete')
 
-        pecan.request.rpcapi.function_delete(nodepool)
+        pecan.request.conductor_rpcapi.function_delete(nodepool)

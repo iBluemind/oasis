@@ -12,12 +12,13 @@ class AgentAPI(rpc_service.API):
                                   topic=cfg.CONF.agent.topic)
 
     # Function Operations
-    def function_create(self, function, context):
+    def function_create(self, function_id, role, body, context):
         return self._call('function_create',
-                          function=function, context=context)
+                          function_id=function_id, role=role, body=body, context=context)
 
-    def function_update(self, function_id, context):
-        return self._call('function_update', function_id=function_id, context=context)
+    def function_update(self, function_id, role, body, context):
+        return self._call('function_update',
+                          function_id=function_id, role=role, body=body, context=context)
 
     def function_delete(self, function_id, context):
         return self._call('function_delete', function_id=function_id, context=context)
