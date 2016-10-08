@@ -93,6 +93,11 @@ class NodePoolPolicy(base.APIBase):
     @staticmethod
     def _convert_with_links(nodepool_policy, url, expand=True):
         if not expand:
+            nodepool_policy.unset_fields_except(['id', 'name', 'min_size',
+                                                 'max_size', 'scaleup_adjust', 'scaleup_cooldown',
+                                                 'scaleup_period', 'scaleup_evaluation_periods', 'scaledown_adjust',
+                                                 'scaledown_cooldown', 'scaledown_period', 'scaledown_evaluation_periods',
+                                                 'scaledown_threshold', 'scaleup_threshold'])
             nodepool_policy.links = [link.Link.make_link('self', url,
                                          'nodepool_policies', nodepool_policy.id),
                      link.Link.make_link('bookmark', url,
@@ -136,7 +141,7 @@ class NodePoolPolicyCollection(collection.Collection):
     @staticmethod
     def convert_with_links(rpc_bays, limit, url=None, expand=False, **kwargs):
         collection = NodePoolPolicyCollection()
-        collection.bays = [NodePoolPolicy.convert_with_links(p, expand)
+        collection.nodepool_policies = [NodePoolPolicy.convert_with_links(p, expand)
                            for p in rpc_bays]
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
@@ -166,7 +171,7 @@ class NodePoolPoliciesController(rest.RestController):
 
         marker_obj = None
         if marker:
-            marker_obj = objects.NodePoolPolicy.get_by_uuid(pecan.request.context,
+            marker_obj = objects.NodePoolPolicy.get_by_id(pecan.request.context,
                                                  marker)
 
         nodepool_policies = objects.NodePoolPolicy.list(pecan.request.context, limit,
@@ -253,8 +258,7 @@ class NodePoolPoliciesController(rest.RestController):
         nodepool_policy.create()
 
         # Set the HTTP Location Header
-        pecan.response.location = link.build_url('nodepool_policies',
-                                                 nodepool_policy.id)
+        # pecan.response.location = link.build_url('nodepool_policies', nodepool_policy.id)
         return NodePoolPolicy.convert_with_links(nodepool_policy)
 
         # res_nodepool_policy = pecan.request.rpcapi.nodepool_policy_create(nodepool_policy,

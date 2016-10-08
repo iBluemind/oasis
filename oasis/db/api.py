@@ -109,3 +109,8 @@ class Connection(object):
         :returns: A bay.
         :raises: BayNotFound
         """
+
+    @abc.abstractmethod
+    def get_nodepool_policy_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
+        """Get matching Functions"""
