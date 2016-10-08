@@ -101,7 +101,7 @@ class Function(base.APIBase):
             function.unset_fields_except(['id', 'name', 'project_id',
                                      'status', 'status_reason', 'desc',
                                      'nodepool_id', 'endpoint_id', 'user_id',
-                                     'body', 'stack_id'])
+                                     'body', 'stack_id', 'created_at'])
 
             function.links = [link.Link.make_link('self', url,
                                          'functions', function.id),

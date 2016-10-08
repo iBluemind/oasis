@@ -97,7 +97,7 @@ class NodePoolPolicy(base.APIBase):
                                                  'max_size', 'scaleup_adjust', 'scaleup_cooldown',
                                                  'scaleup_period', 'scaleup_evaluation_periods', 'scaledown_adjust',
                                                  'scaledown_cooldown', 'scaledown_period', 'scaledown_evaluation_periods',
-                                                 'scaledown_threshold', 'scaleup_threshold'])
+                                                 'scaledown_threshold', 'scaleup_threshold', 'created_at'])
             nodepool_policy.links = [link.Link.make_link('self', url,
                                          'nodepool_policies', nodepool_policy.id),
                      link.Link.make_link('bookmark', url,
