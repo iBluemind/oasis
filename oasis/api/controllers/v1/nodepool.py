@@ -87,6 +87,9 @@ class NodePool(base.APIBase):
     @staticmethod
     def _convert_with_links(nodepool, url, expand=True):
         if not expand:
+            nodepool.unset_fields_except(['id', 'name', 'updated_at', 'created_at',
+                                          'proejct_id', 'stack_id', 'user_id', 'host',
+                                          'status', 'function_id', 'nodepool_policy_id', 'status_reason'])
             nodepool.links = [link.Link.make_link('self', url,
                                          'nodepools', nodepool.id),
                      link.Link.make_link('bookmark', url,
@@ -125,7 +128,7 @@ class NodePoolCollection(collection.Collection):
     @staticmethod
     def convert_with_links(rpc_bays, limit, url=None, expand=False, **kwargs):
         collection = NodePoolCollection()
-        collection.bays = [NodePool.convert_with_links(p, expand)
+        collection.nodepools = [NodePool.convert_with_links(p, expand)
                            for p in rpc_bays]
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
@@ -155,7 +158,7 @@ class NodePoolsController(rest.RestController):
 
         marker_obj = None
         if marker:
-            marker_obj = objects.NodePool.get_by_uuid(pecan.request.context,
+            marker_obj = objects.NodePool.get_by_id(pecan.request.context,
                                                  marker)
 
         nodepools = objects.NodePool.list(pecan.request.context, limit,
@@ -237,7 +240,7 @@ class NodePoolsController(rest.RestController):
         nodepool = objects.NodePool(context, **nodepool_dict)
         nodepool.create()
 
-        pecan.request.conductor_rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
+        # pecan.request.conductor_rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('nodepools',

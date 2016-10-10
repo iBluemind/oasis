@@ -285,6 +285,31 @@ class Connection(api.Connection):
             raise exception.NodePoolPolicyAlreadyExists(uuid=values['id'])
         return nodepool_policy
 
+    def _add_nodepool_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+
+        possible_filters = ["name", "stack_id", "project_id", "id"]
+
+        filter_names = set(filters).intersection(possible_filters)
+        filter_dict = {filter_name: filters[filter_name]
+                       for filter_name in filter_names}
+
+        query = query.filter_by(**filter_dict)
+
+        if 'status' in filters:
+            query = query.filter(models.Function.status.in_(filters['status']))
+
+        return query
+
+    def get_nodepool_list(self, context, filters=None, limit=None, marker=None,
+                     sort_key=None, sort_dir=None):
+        query = model_query(models.NodePool)
+        # query = self._add_tenant_filters(context, query)
+        query = self._add_nodepool_filters(query, filters)
+        return _paginate_query(models.NodePool, limit, marker,
+                               sort_key, sort_dir, query)
+
     def create_nodepool(self, values):
         # ensure defaults are present for new funtions
         if not values.get('id'):

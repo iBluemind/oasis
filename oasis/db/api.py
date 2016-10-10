@@ -113,4 +113,10 @@ class Connection(object):
     @abc.abstractmethod
     def get_nodepool_policy_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
-        """Get matching Functions"""
+        """Get matching Nodepool Policies"""
+
+    @abc.abstractmethod
+    def get_nodepool_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
+        """Get matching Nodepools"""
+

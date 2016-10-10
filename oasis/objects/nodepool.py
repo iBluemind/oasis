@@ -14,6 +14,7 @@
 #    under the License.
 
 from oslo_versionedobjects import fields
+from oasis.objects import fields as m_fields
 
 from oasis.common import exception
 from oasis.common import utils
