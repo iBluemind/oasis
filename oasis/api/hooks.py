@@ -81,7 +81,7 @@ class RPCHook(hooks.PecanHook):
 
     def before(self, state):
         state.request.conductor_rpcapi = conductor_api.API(context=state.request.context)
-        state.request.agent_rpcapi = agent_api.API(context=state.request.context)
+        state.request.agent_rpcapi = agent_api.AgentAPI(context=state.request.context)
 
 
 class NoExceptionTracebackHook(hooks.PecanHook):
