@@ -1,3 +1,4 @@
+
 # Copyright 2010 United States Government as represented by the
 # Administrator of the National Aeronautics and Space Administration.
 # All Rights Reserved.
@@ -39,7 +40,6 @@ def get_manager():
 
 def version():
     """Current database version.
-
     :returns: Database version
     :rtype: string
     """
@@ -48,7 +48,6 @@ def version():
 
 def upgrade(version):
     """Used for upgrading database.
-
     :param version: Desired database version
     :type version: string
     """
@@ -59,9 +58,7 @@ def upgrade(version):
 
 def stamp(revision):
     """Stamps database with provided revision.
-
     Don't run any migrations.
-
     :param revision: Should match one from repository or head - to stamp
                      database with most recent revision
     :type revision: string
@@ -71,7 +68,6 @@ def stamp(revision):
 
 def revision(message=None, autogenerate=False):
     """Creates template for migration.
-
     :param message: Text that will be used for migration title
     :type message: string
     :param autogenerate: If True - generates diff based on current database

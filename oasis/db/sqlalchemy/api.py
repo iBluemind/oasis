@@ -136,6 +136,48 @@ class Connection(api.Connection):
 
         return query
 
+    def get_endpoint_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
+        query = model_query(models.Endpoint)
+        # query = self._add_tenant_filters(context, query)
+        # query = self._add_funtions_filters(query, filters)
+        return _paginate_query(models.Endpoint, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def create_endpoint(self, values):
+        # ensure defaults are present for new endpoint
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        endpoint = models.Endpoint()
+        endpoint.update(values)
+        try:
+            endpoint.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+        return endpoint
+
+    def get_endpoint_by_id(self, context, endpoint_id):
+        query = model_query(models.Endpoint)
+        query = self._add_tenant_filters(context, query)
+        query = query.filter_by(id=endpoint_id)
+        try:
+            return query.one()
+        except NoResultFound:
+            raise exception.EndpointNotFound(function=endpoint_id)
+
+    def get_endpoint_by_name(self, context, endpoint_name):
+        query = model_query(models.Endpoint)
+        query = self._add_tenant_filters(context, query)
+        query = query.filter_by(name=endpoint_name)
+        try:
+            return query.one()
+        except MultipleResultsFound:
+            raise exception.Conflict('Multiple endpoints exist with same name.'
+                                     ' Please use the endpoint uuid instead.')
+        except NoResultFound:
+            raise exception.EndpointNotFound(function=endpoint_name)
+
     def get_function_list(self, context, filters=None, limit=None, marker=None,
                      sort_key=None, sort_dir=None):
         query = model_query(models.Function)

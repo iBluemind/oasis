@@ -26,6 +26,7 @@ from wsme import types as wtypes
 
 from oasis.api.controllers import base as controllers_base
 from oasis.api.controllers import link
+from oasis.api.controllers.v1 import endpoint
 from oasis.api.controllers.v1 import function
 from oasis.api.controllers.v1 import nodepool
 from oasis.api.controllers.v1 import nodepool_policy
@@ -73,12 +74,17 @@ class V1(controllers_base.APIBase):
     rcs = [link.Link]
     """Links to the rcs resource"""
 
+    endpoints = [link.Link]
+    """Links to the endpoints resource"""
+
     functions = [link.Link]
-    """Links to the bays resource"""
+    """Links to the functions resource"""
 
     nodepools = [link.Link]
+    """Links to the nodepools resource"""
 
     nodepool_policies = [link.Link]
+    """Links to the nodepool_policies resource"""
 
     @staticmethod
     def convert():
@@ -99,6 +105,9 @@ class V1(controllers_base.APIBase):
                                       pecan.request.host_url,
                                       'rcs', '',
                                       bookmark=True)]
+        v1.endpoints = [link.Link.make_link('self', pecan.request.host_url, 'endpoints', ''),
+                        link.Link.make_link('bookmark', pecan.prequest.host_url, 'endpoints', '', bookmark=True)]
+
         v1.functions = [link.Link.make_link('self', pecan.request.host_url,
                                        'functions', ''),
                    link.Link.make_link('bookmark',
@@ -123,6 +132,7 @@ class V1(controllers_base.APIBase):
 class Controller(rest.RestController):
     """Version 1 API controller root."""
 
+    endpoints = endpoint.EndpointsController()
     functions = function.FunctionsController()
     nodepools = nodepool.NodePoolsController()
     nodepool_policies = nodepool_policy.NodePoolPoliciesController()

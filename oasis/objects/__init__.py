@@ -15,11 +15,14 @@
 from oasis.objects import function
 from oasis.objects import nodepool
 from oasis.objects import nodepool_policy
+from oasis.objects import endpoint
 
+Endpoint = endpoint.Endpoint
 Function = function.Function
 NodePool = nodepool.NodePool
 NodePoolPolicy = nodepool_policy.NodePoolPolicy
 
 __all__ = (Function,
+           Endpoint,
            NodePool,
            NodePoolPolicy)

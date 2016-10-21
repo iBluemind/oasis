@@ -39,9 +39,52 @@ class Connection(object):
         """Constructor."""
 
     @abc.abstractmethod
+    def get_endpoint_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
+        """Get matching endpoints.
+
+        Return a list of the specified columns for all bays that match the
+        specified filters.
+
+        :param context: The security context
+        :param filters: Filters to apply. Defaults to None.
+
+        :param limit: Maximum number of bays to return.
+        :param marker: the last item of the previous page; we return the next
+                       result set.
+        :param sort_key: Attribute by which results should be sorted.
+        :param sort_dir: direction in which results should be sorted.
+                         (asc, desc)
+        :returns: A list of tuples of the specified columns.
+        """
+
+    @abc.abstractmethod
+    def create_endpoint(self, values):
+        """Create a new endpoint.
+        """
+
+    @abc.abstractmethod
+    def get_endpoint_by_id(self, context, endpoint_id):
+        """Return a endpoint.
+
+        :param context: The security context
+        :param endpoint_id: The id of a endpoint.
+        :returns: A endpoint.
+        """
+
+    @abc.abstractmethod
+    def get_endpoint_by_name(self, context, endpoint_id):
+        """Return a endpoint.
+
+        :param context: The security context
+        :param endpoint_id: The id of a endpoint.
+        :returns: A endpoint.
+        """
+
+    @abc.abstractmethod
     def get_function_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
-        """Get matching bays.
+        """Get matching functions.
 
         Return a list of the specified columns for all bays that match the
         specified filters.
@@ -60,7 +103,7 @@ class Connection(object):
 
     @abc.abstractmethod
     def create_function(self, values):
-        """Create a new bay.
+        """Create a new function.
 
         :param values: A dict containing several items used to identify
                        and track the bay, and several dicts which are passed
@@ -78,35 +121,35 @@ class Connection(object):
 
     @abc.abstractmethod
     def get_function_by_id(self, context, function_id):
-        """Return a bay.
+        """Return a function.
 
         :param context: The security context
-        :param bay_id: The id of a bay.
-        :returns: A bay.
+        :param function_id: The id of a function.
+        :returns: A function.
         """
 
     @abc.abstractmethod
     def get_function_by_name(self, context, function_name):
-        """Return a bay.
+        """Return a function.
 
         :param context: The security context
-        :param bay_name: The name of a bay.
-        :returns: A bay.
+        :param function_name: The name of a function.
+        :returns: A function.
         """
 
     @abc.abstractmethod
     def destroy_function(self, function_id):
-        """Destroy a bay and all associated interfaces.
+        """Destroy a function and all associated interfaces.
 
-        :param bay_id: The id or uuid of a bay.
+        :param function_id: The id or uuid of a function.
         """
 
     @abc.abstractmethod
     def update_function(self, function_id, values):
         """Update properties of a bay.
 
-        :param bay_id: The id or uuid of a bay.
-        :returns: A bay.
+        :param function_id: The id or uuid of a function.
+        :returns: A function.
         :raises: BayNotFound
         """
 

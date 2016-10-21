@@ -228,12 +228,21 @@ class FileSystemNotSupported(OasisException):
     message = _("Failed to create a file system. "
                 "File system %(fs)s is not supported.")
 
+
+class EndpointNotFound(ResourceNotFound):
+    message = _("Endpoint %(bay)s could not be found.")
+
+
+class EndpointAlreadyExists(Conflict):
+    message = _("A endpoint with UUID %(uuid)s already exists.")
+
+
 class FunctionNotFound(ResourceNotFound):
     message = _("Function %(bay)s could not be found.")
 
 
 class FunctionAlreadyExists(Conflict):
-    message = _("A bay with UUID %(uuid)s already exists.")
+    message = _("A endpoint with UUID %(uuid)s already exists.")
 
 
 class NotSupported(OasisException):
