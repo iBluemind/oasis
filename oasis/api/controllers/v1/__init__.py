@@ -30,16 +30,20 @@ from oasis.api.controllers.v1 import endpoint
 from oasis.api.controllers.v1 import function
 from oasis.api.controllers.v1 import nodepool
 from oasis.api.controllers.v1 import nodepool_policy
+from oasis.api.controllers.v1 import httpapi
+from oasis.api.controllers.v1 import request
+from oasis.api.controllers.v1 import requestheader
+from oasis.api.controllers.v1 import response
+from oasis.api.controllers.v1 import responsecode
+from oasis.api.controllers.v1 import responsemessage
 from oasis.api import expose
 from oasis.i18n import _
-
 
 LOG = logging.getLogger(__name__)
 
 BASE_VERSION = 1
 MIN_VER_STR = '1.0'
 MAX_VER_STR = '1.0'
-
 
 MIN_VER = controllers_base.Version(
     {controllers_base.Version.string: MIN_VER_STR}, MIN_VER_STR, MAX_VER_STR)
@@ -77,6 +81,18 @@ class V1(controllers_base.APIBase):
     endpoints = [link.Link]
     """Links to the endpoints resource"""
 
+    httpapis = [link.Link]
+
+    responses = [link.Link]
+
+    responsecodes = [link.Link]
+
+    responsemessages = [link.Link]
+
+    requests = [link.Link]
+
+    requestheaders = [link.Link]
+
     functions = [link.Link]
     """Links to the functions resource"""
 
@@ -98,34 +114,43 @@ class V1(controllers_base.APIBase):
                                         'api-spec-v1.html',
                                         bookmark=True, type='text/html')]
         v1.media_types = [MediaType('application/json',
-                          'application/vnd.openstack.oasis.v1+json')]
-        v1.rcs = [link.Link.make_link('self', pecan.request.host_url,
-                                      'rcs', ''),
-                  link.Link.make_link('bookmark',
-                                      pecan.request.host_url,
-                                      'rcs', '',
-                                      bookmark=True)]
+                                    'application/vnd.openstack.oasis.v1+json')]
+        v1.rcs = [link.Link.make_link('self', pecan.request.host_url, 'rcs', ''),
+                  link.Link.make_link('bookmark', pecan.request.host_url,
+                                      'rcs', '', bookmark=True)]
         v1.endpoints = [link.Link.make_link('self', pecan.request.host_url, 'endpoints', ''),
                         link.Link.make_link('bookmark', pecan.prequest.host_url, 'endpoints', '', bookmark=True)]
 
-        v1.functions = [link.Link.make_link('self', pecan.request.host_url,
-                                       'functions', ''),
-                   link.Link.make_link('bookmark',
-                                       pecan.request.host_url,
-                                       'functions', '',
-                                       bookmark=True)]
-        v1.nodepools = [link.Link.make_link('self', pecan.request.host_url,
-                                            'nodepools', ''),
-                    link.Link.make_link('bookmark',
-                                        pecan.request.host_url,
-                                        'nodepools', '',
-                                        bookmark=True)]
+        v1.httpapis = [link.Link.make_link('self', pecan.request.host_url, 'httpapis', ''),
+                       link.Link.make_link('bookmark', pecan.prequest.host_url, 'httpapis', '', bookmark=True)]
+
+        v1.requests = [link.Link.make_link('self', pecan.request.host_url, 'requests', ''),
+                       link.Link.make_link('bookmark', pecan.prequest.host_url, 'requests', '', bookmark=True)]
+
+        v1.requestheaders = [link.Link.make_link('self', pecan.request.host_url, 'requestheaders', ''),
+                       link.Link.make_link('bookmark', pecan.prequest.host_url, 'requestheaders', '', bookmark=True)]
+
+        v1.responses = [link.Link.make_link('self', pecan.request.host_url, 'responses', ''),
+                       link.Link.make_link('bookmark', pecan.prequest.host_url, 'responses', '', bookmark=True)]
+
+        v1.responsecodes = [link.Link.make_link('self', pecan.request.host_url, 'responsecodes', ''),
+                       link.Link.make_link('bookmark', pecan.prequest.host_url, 'responsecodes', '', bookmark=True)]
+
+        v1.responsemessages = [link.Link.make_link('self', pecan.request.host_url, 'responsemessages', ''),
+                       link.Link.make_link('bookmark', pecan.prequest.host_url, 'responsemessages', '', bookmark=True)]
+
+        v1.functions = [link.Link.make_link('self', pecan.request.host_url, 'functions', ''),
+                        link.Link.make_link('bookmark', pecan.request.host_url,
+                                            'functions', '', bookmark=True)]
+
+        v1.nodepools = [link.Link.make_link('self', pecan.request.host_url, 'nodepools', ''),
+                        link.Link.make_link('bookmark', pecan.request.host_url,
+                                            'nodepools', '', bookmark=True)]
+
         v1.nodepool_policies = [link.Link.make_link('self', pecan.request.host_url,
                                                     'nodepool_policies', ''),
-                    link.Link.make_link('bookmark',
-                                        pecan.request.host_url,
-                                        'nodepool_policies', '',
-                                    bookmark=True)]
+                                link.Link.make_link('bookmark', pecan.request.host_url,
+                                                    'nodepool_policies', '', bookmark=True)]
         return v1
 
 
@@ -136,6 +161,12 @@ class Controller(rest.RestController):
     functions = function.FunctionsController()
     nodepools = nodepool.NodePoolsController()
     nodepool_policies = nodepool_policy.NodePoolPoliciesController()
+    httpapis = httpapi.HttpApisController()
+    requests = request.RequestsController()
+    requestheaders = requestheader.RequestHeadersController()
+    responses = response.ResponsesController()
+    responsecodes = responsecode.ResponseCodesController()
+    responsemessages = responsemessage.ResponseMessagesController()
 
     @expose.expose(V1)
     def get(self):
@@ -156,7 +187,7 @@ class Controller(rest.RestController):
                 "[%(min)s, %(max)s].") % {'ver': version,
                                           'min': MIN_VER_STR,
                                           'max': MAX_VER_STR},
-                headers=headers)
+                                        headers=headers)
         # ensure the minor version is within the supported range
         if version < MIN_VER or version > MAX_VER:
             raise exc.HTTPNotAcceptable(_(
@@ -189,5 +220,6 @@ class Controller(rest.RestController):
             LOG.debug(msg)
 
         return super(Controller, self)._route(args)
+
 
 __all__ = (Controller)

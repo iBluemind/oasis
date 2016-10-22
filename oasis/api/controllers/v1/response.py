@@ -16,7 +16,7 @@ from oasis import objects
 from oasis.objects import fields
 
 
-class EndpointPatchType(types.JsonPatchType):
+class ResponsePatchType(types.JsonPatchType):
 
     @staticmethod
     def mandatory_attrs():
@@ -24,34 +24,28 @@ class EndpointPatchType(types.JsonPatchType):
 
     @staticmethod
     def internal_attrs():
-        internal_attrs = ['/name', '/desc', '/url']
+        internal_attrs = ['/http_api_id', ]
         return types.JsonPatchType.internal_attrs() + internal_attrs
 
 
-class Endpoint(base.APIBase):
-    """API representation of a endpoint.
+class Response(base.APIBase):
+    """API representation of a response.
 
     This class enforces type checking and value constraints, and converts
     between the internal object model and the API representation of a function.
     """
 
     id = types.uuid
-    """Unique UUID for this endpoint"""
+    """Unique UUID for this response"""
 
-    name = wtypes.StringType(min_length=1, max_length=255)
-    """Name of this endpoint"""
-
-    desc = wtypes.StringType(min_length=1, max_length=255)
-    """Description of this endpoint"""
-
-    url = wtypes.StringType(min_length=1, max_length=255)
-    """Url of this endpoint"""
+    http_api_id = types.uuid
+    """Url of this response"""
 
     def __init__(self, **kwargs):
-        super(Endpoint, self).__init__()
+        super(Response, self).__init__()
 
         self.fields = []
-        for field in objects.Endpoint.fields:
+        for field in objects.Response.fields:
             # Skip fields we do not expose.
             if not hasattr(self, field):
                 continue
@@ -59,45 +53,45 @@ class Endpoint(base.APIBase):
             setattr(self, field, kwargs.get(field, wtypes.Unset))
 
     @staticmethod
-    def _convert_with_links(endpoint, url, expand=True):
+    def _convert_with_links(response, url, expand=True):
         if not expand:
-            endpoint.unset_fields_except(['id', 'name', 'url', 'desc', 'created_at'])
+            response.unset_fields_except(['id', 'http_api_id', 'created_at'])
 
-            endpoint.links = [link.Link.make_link('self', url,
-                                         'endpoints', endpoint.id),
+            response.links = [link.Link.make_link('self', url,
+                                         'responses', response.id),
                      link.Link.make_link('bookmark', url,
-                                         'endpoints', endpoint.id,
+                                         'responses', response.id,
                                          bookmark=True)]
-        return endpoint
+        return response
 
     @classmethod
-    def convert_with_links(cls, rpc_endpoint, expand=True):
-        endpoint = Endpoint(**rpc_endpoint.as_dict())
-        return cls._convert_with_links(endpoint, pecan.request.host_url, expand)
+    def convert_with_links(cls, rpc_response, expand=True):
+        response = Response(**rpc_response.as_dict())
+        return cls._convert_with_links(response, pecan.request.host_url, expand)
 
 
-class EndpointCollection(collection.Collection):
+class ResponseCollection(collection.Collection):
 
-    endpoints = [Endpoint]
+    responses = [Response]
 
     def __init__(self, **kwargs):
-        self._type = 'endpoints'
+        self._type = 'responses'
 
     @staticmethod
-    def convert_with_links(rpc_endpoints, limit, url=None, expand=False, **kwargs):
-        collection = EndpointCollection()
-        collection.endpoints = [Endpoint.convert_with_links(p, expand)
-                                for p in rpc_endpoints]
+    def convert_with_links(rpc_responses, limit, url=None, expand=False, **kwargs):
+        collection = ResponseCollection()
+        collection.responses = [Response.convert_with_links(p, expand)
+                                for p in rpc_responses]
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
 
-class EndpointsController(rest.RestController):
+class ResponsesController(rest.RestController):
 
     def __init__(self):
-        super(EndpointsController, self).__init__()
+        super(ResponsesController, self).__init__()
 
-    def _get_endpoints_collection(self, marker, limit, sort_key,
+    def _get_responses_collection(self, marker, limit, sort_key,
                                   sort_dir, expand=False, resource_url=None):
 
         limit = api_utils.validate_limit(limit)
@@ -105,24 +99,24 @@ class EndpointsController(rest.RestController):
 
         marker_obj = None
         if marker:
-            marker_obj = objects.Endpoint.get_by_id(pecan.request.context,
+            marker_obj = objects.Response.get_by_id(pecan.request.context,
                                                     marker)
 
-        endpoints = objects.Endpoint.list(pecan.request.context, limit,
+        responses = objects.Response.list(pecan.request.context, limit,
                                           marker_obj, sort_key=sort_key,
                                           sort_dir=sort_dir)
 
-        return EndpointCollection.convert_with_links(endpoints, limit,
+        return ResponseCollection.convert_with_links(responses, limit,
                                                      url=resource_url,
                                                      expand=expand,
                                                      sort_key=sort_key,
                                                      sort_dir=sort_dir)
 
-    @expose.expose(EndpointCollection, types.uuid, int, wtypes.text,
+    @expose.expose(ResponseCollection, types.uuid, int, wtypes.text,
                    wtypes.text)
     def get_all(self, marker=None, limit=None, sort_key='id',
                 sort_dir='asc'):
-        """Retrieve a list of endpoints.
+        """Retrieve a list of responses.
 
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
@@ -130,35 +124,31 @@ class EndpointsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'endpoint:get_all',
-                       action='endpoint:get_all')
-        return self._get_endpoints_collection(marker, limit, sort_key, sort_dir)
+        policy.enforce(context, 'response:get_all',
+                       action='response:get_all')
+        return self._get_responses_collection(marker, limit, sort_key, sort_dir)
 
-    @expose.expose(Endpoint, body=Endpoint, status_code=201)
-    def post(self, endpoint):
+    @expose.expose(Response, body=Response, status_code=201)
+    def post(self, response):
         """Create a new function.
 
-        :param endpoint: a endpoint within the request body.
+        :param response: a response within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'endpoint:create',
-                       action='endpoint:create')
-        endpoint_dict = endpoint.as_dict()
+        policy.enforce(context, 'response:create',
+                       action='response:create')
+        response_dict = response.as_dict()
 
-        if endpoint_dict.get('name') is None:
-            endpoint_dict['name'] = None
-        if endpoint_dict.get('url') is None:
-            endpoint_dict['url'] = None
-        if endpoint_dict.get('desc') is None:
-            endpoint_dict['desc'] = None
+        if response_dict.get('http_api_id') is None:
+            response_dict['http_api_id'] = None
 
-        endpoint = objects.Endpoint(context, **endpoint_dict)
+        response = objects.Response(context, **response_dict)
 
-        endpoint.create()
+        response.create()
 
         # pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
 
         # Set the HTTP Location Header
         # pecan.response.location = link.build_url('functions',
         #                                          function.id)
-        return Endpoint.convert_with_links(endpoint)
+        return Response.convert_with_links(response)

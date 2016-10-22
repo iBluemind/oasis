@@ -82,6 +82,46 @@ class Connection(object):
         """
 
     @abc.abstractmethod
+    def create_httpapi(self, values):
+        """Create a new httpapi."""
+
+    @abc.abstractmethod
+    def get_httpapi_list(self, context):
+        """Get matching http apis."""
+
+    @abc.abstractmethod
+    def create_request(self, values):
+        """Create a new Request."""
+
+    @abc.abstractmethod
+    def create_request_header(self, values):
+        """Create a new Request Header."""
+
+    @abc.abstractmethod
+    def get_request_header_list(self, context):
+        """Get matching http apis."""
+
+    @abc.abstractmethod
+    def create_response(self, values):
+        """Create a new Response."""
+
+    @abc.abstractmethod
+    def create_response_code(self, values):
+        """Create a new Response Code."""
+
+    @abc.abstractmethod
+    def get_response_code_list(self, context):
+        """Get matching response codes."""
+
+    @abc.abstractmethod
+    def get_response_message_list(self, context):
+        """Get matching response messages."""
+
+    @abc.abstractmethod
+    def create_response_message(self, values):
+        """Create a new Response Message."""
+
+    @abc.abstractmethod
     def get_function_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
         """Get matching functions.

@@ -75,8 +75,7 @@ class JSONEncodedList(JsonEncodedType):
     type = list
 
 
-class OasisBase(models.TimestampMixin,
-                 models.ModelBase):
+class OasisBase(models.TimestampMixin, models.ModelBase):
 
     metadata = None
 

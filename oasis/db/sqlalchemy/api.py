@@ -178,6 +178,100 @@ class Connection(api.Connection):
         except NoResultFound:
             raise exception.EndpointNotFound(function=endpoint_name)
 
+    def get_httpapi_list(self, context):
+        query = model_query(models.HttpApi)
+        return _paginate_query(models.HttpApi, '', '', '', '', query)
+
+    def create_httpapi(self, values):
+        # ensure defaults are present for new endpoint
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        httpapi = models.HttpApi()
+        httpapi.update(values)
+        try:
+            httpapi.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+        return httpapi
+
+    def create_request(self, values):
+        # ensure defaults are present for new endpoint
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        request = models.Request()
+        request.update(values)
+        try:
+            request.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+        return request
+
+    def create_request_header(self, values):
+        # ensure defaults are present for new endpoint
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        request_header = models.RequestHeader()
+        request_header.update(values)
+        try:
+            request_header.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+        return request_header
+
+    def get_request_header_list(self, context):
+        query = model_query(models.RequestHeader)
+        return _paginate_query(models.RequestHeader, '', '', '', '', query)
+
+    def create_response(self, values):
+        # ensure defaults are present for new endpoint
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        response = models.Response()
+        response.update(values)
+        try:
+            response.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+        return response
+
+    def create_response_code(self, values):
+        # ensure defaults are present for new endpoint
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        response_code = models.ResponseStatusCode()
+        response_code.update(values)
+        try:
+            response_code.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+        return response_code
+
+    def create_response_message(self, values):
+        # ensure defaults are present for new endpoint
+        if not values.get('id'):
+            values['id'] = utils.generate_uuid()
+
+        response_message = models.ResponseErrorMessage()
+        response_message.update(values)
+        try:
+            response_message.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+        return response_message
+
+    def get_response_message_list(self, context):
+        query = model_query(models.ResponseErrorMessage)
+        return _paginate_query(models.ResponseErrorMessage, '', '', '', '', query)
+
+    def get_response_code_list(self, context):
+        query = model_query(models.ResponseStatusCode)
+        return _paginate_query(models.ResponseStatusCode, '', '', '', '', query)
+
     def get_function_list(self, context, filters=None, limit=None, marker=None,
                      sort_key=None, sort_dir=None):
         query = model_query(models.Function)
