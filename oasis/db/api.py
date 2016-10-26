@@ -194,12 +194,43 @@ class Connection(object):
         """
 
     @abc.abstractmethod
+    def create_nodepool_policy(self, values):
+        """Create a new nodepool policy."""
+
+    @abc.abstractmethod
+    def update_nodepool_policy(self, id, values):
+        """Update nodepool policy"""
+
+    @abc.abstractmethod
+    def destroy_nodepool_policy(self, id):
+        """Delete nodepool policy"""
+
+    @abc.abstractmethod
     def get_nodepool_policy_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
         """Get matching Nodepool Policies"""
+
+    @abc.abstractmethod
+    def get_nodepool_policy_by_id(self, context, function_id):
+        """Return a policy."""
 
     @abc.abstractmethod
     def get_nodepool_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
         """Get matching Nodepools"""
 
+    @abc.abstractmethod
+    def get_nodepool_by_id(self, context, function_id):
+        """Return a nodepool."""
+
+    @abc.abstractmethod
+    def create_nodepool(self, values):
+        """Create a new nodepool."""
+
+    @abc.abstractmethod
+    def update_nodepool(self, id, values):
+        """Update nodepool"""
+
+    @abc.abstractmethod
+    def destory_nodepool(self, id):
+        """Delete nodepool"""

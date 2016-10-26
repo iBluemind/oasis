@@ -75,10 +75,8 @@ def add_identity_filter(query, value):
     :param value: Value for filtering results by.
     :return: Modified query.
     """
-    if utils.is_int_like(value):
+    if utils.is_uuid_like(value):
         return query.filter_by(id=value)
-    elif utils.is_uuid_like(value):
-        return query.filter_by(uuid=value)
     else:
         raise exception.InvalidIdentity(identity=value)
 
@@ -124,15 +122,15 @@ class Connection(api.Connection):
         # possible_filters = ["name", "node_count",
         #                     "master_count", "stack_id", "api_address",
         #                     "node_addresses", "project_id", "user_id"]
-        possible_filters = ["name", "project_id", "user_id"]
+        possible_filters = ["name", "project_id", "user_id", "desc", "body", "endpoint_id", "nodepool_id"]
         filter_names = set(filters).intersection(possible_filters)
         filter_dict = {filter_name: filters[filter_name]
                        for filter_name in filter_names}
 
         query = query.filter_by(**filter_dict)
 
-        if 'status' in filters:
-            query = query.filter(models.Function.status.in_(filters['status']))
+        # if 'status' in filters:
+        #     query = query.filter(models.Function.status.in_(filters['status']))
 
         return query
 
@@ -159,7 +157,7 @@ class Connection(api.Connection):
 
     def get_endpoint_by_id(self, context, endpoint_id):
         query = model_query(models.Endpoint)
-        query = self._add_tenant_filters(context, query)
+        # query = self._add_tenant_filters(context, query)
         query = query.filter_by(id=endpoint_id)
         try:
             return query.one()
@@ -168,7 +166,7 @@ class Connection(api.Connection):
 
     def get_endpoint_by_name(self, context, endpoint_name):
         query = model_query(models.Endpoint)
-        query = self._add_tenant_filters(context, query)
+        # query = self._add_tenant_filters(context, query)
         query = query.filter_by(name=endpoint_name)
         try:
             return query.one()
@@ -275,7 +273,7 @@ class Connection(api.Connection):
     def get_function_list(self, context, filters=None, limit=None, marker=None,
                      sort_key=None, sort_dir=None):
         query = model_query(models.Function)
-        query = self._add_tenant_filters(context, query)
+        # query = self._add_tenant_filters(context, query)
         query = self._add_funtions_filters(query, filters)
         return _paginate_query(models.Function, limit, marker,
                                sort_key, sort_dir, query)
@@ -295,7 +293,7 @@ class Connection(api.Connection):
 
     def get_function_by_id(self, context, function_id):
         query = model_query(models.Function)
-        query = self._add_tenant_filters(context, query)
+        # query = self._add_tenant_filters(context, query)
         query = query.filter_by(id=function_id)
         try:
             return query.one()
@@ -304,7 +302,7 @@ class Connection(api.Connection):
 
     def get_function_by_name(self, context, function_name):
         query = model_query(models.Function)
-        query = self._add_tenant_filters(context, query)
+        # query = self._add_tenant_filters(context, query)
         query = query.filter_by(name=function_name)
         try:
             return query.one()
@@ -316,7 +314,7 @@ class Connection(api.Connection):
 
     def get_function_by_uuid(self, context, function_uuid):
         query = model_query(models.Function)
-        query = self._add_tenant_filters(context, query)
+        # query = self._add_tenant_filters(context, query)
         query = query.filter_by(uuid=function_uuid)
         try:
             return query.one()
@@ -324,27 +322,12 @@ class Connection(api.Connection):
             raise exception.FunctionNotFound(function=function_uuid)
 
     def destroy_function(self, function_id):
-        def destroy_function_resources(session, function_uuid):
+        def destroy_function_resources(session, function_id):
             """Checks whether the function does not have resources."""
-            query = model_query(models.Pod, session=session)
-            query = self._add_pods_filters(query, {'function_uuid': function_uuid})
-            if query.count() != 0:
-                query.delete()
-
-            query = model_query(models.Service, session=session)
-            query = self._add_services_filters(query, {'function_uuid': function_uuid})
-            if query.count() != 0:
-                query.delete()
-
-            query = model_query(models.ReplicationController, session=session)
-            query = self._add_rcs_filters(query, {'function_uuid': function_uuid})
-            if query.count() != 0:
-                query.delete()
-
-            query = model_query(models.Container, session=session)
-            query = self._add_containers_filters(query, {'function_uuid': function_uuid})
-            if query.count() != 0:
-                query.delete()
+            # query = model_query(models.Function, session=session)
+            # query = self._add_funtions_filters(query, {'id': function_id})
+            # if query.count() != 0:
+            #     query.delete()
 
         session = get_session()
         with session.begin():
@@ -356,13 +339,13 @@ class Connection(api.Connection):
             except NoResultFound:
                 raise exception.FunctionNotFound(function=function_id)
 
-            destroy_function_resources(session, function_ref['uuid'])
+            destroy_function_resources(session, function_ref['id'])
             query.delete()
 
     def update_function(self, function_id, values):
         # NOTE(dtantsur): this can lead to very strange errors
-        if 'uuid' in values:
-            msg = _("Cannot overwrite UUID for an existing Function.")
+        if 'id' in values:
+            msg = _("Cannot overwrite ID for an existing Function.")
             raise exception.InvalidParameterValue(err=msg)
 
         return self._do_update_function(function_id, values)
@@ -377,8 +360,8 @@ class Connection(api.Connection):
             except NoResultFound:
                 raise exception.FunctionNotFound(function=function_id)
 
-            if 'provision_state' in values:
-                values['provision_updated_at'] = timeutils.utcnow()
+            if 'state' in values:
+                values['updated_at'] = timeutils.utcnow()
 
             ref.update(values)
         return ref
@@ -408,6 +391,16 @@ class Connection(api.Connection):
         return _paginate_query(models.NodePoolPolicy, limit, marker,
                                sort_key, sort_dir, query)
 
+    def get_nodepool_policy_by_id(self, context, nodepool_policy_id):
+        query = model_query(models.NodePoolPolicy)
+        # query = self._add_tenant_filters(context, query)
+        query = query.filter_by(id=nodepool_policy_id)
+        try:
+            return query.one()
+        except NoResultFound:
+            raise exception.NodePoolPolicyNotFound(nodepool_policy=nodepool_policy_id)
+
+
     def create_nodepool_policy(self, values):
         # ensure defaults are present for new funtions
         if not values.get('id'):
@@ -420,6 +413,50 @@ class Connection(api.Connection):
         except db_exc.DBDuplicateEntry:
             raise exception.NodePoolPolicyAlreadyExists(uuid=values['id'])
         return nodepool_policy
+
+    def _do_update_nodepool_policy(self, nodepool_policy_id, values):
+        session = get_session()
+        with session.begin():
+            query = model_query(models.NodePoolPolicy, session=session)
+            query = add_identity_filter(query, nodepool_policy_id)
+            try:
+                ref = query.with_lockmode('update').one()
+            except NoResultFound:
+                raise exception.NodePoolPolicyNotFound(function=nodepool_policy_id)
+
+            values['updated_at'] = timeutils.utcnow()
+
+            ref.update(values)
+        return ref
+
+    def update_nodepool_policy(self, id, values):
+        # NOTE(dtantsur): this can lead to very strange errors
+        if 'id' in values:
+            msg = _("Cannot overwrite ID for an existing Policy.")
+            raise exception.InvalidParameterValue(err=msg)
+
+        return self._do_update_nodepool_policy(id, values)
+
+    def destroy_nodepool_policy(self, id):
+        # def destroy_function_resources(session, function_id):
+        #     """Checks whether the function does not have resources."""
+            # query = model_query(models.Function, session=session)
+            # query = self._add_funtions_filters(query, {'id': function_id})
+            # if query.count() != 0:
+            #     query.delete()
+
+        session = get_session()
+        with session.begin():
+            query = model_query(models.NodePoolPolicy, session=session)
+            query = add_identity_filter(query, id)
+
+            try:
+                function_ref = query.one()
+            except NoResultFound:
+                raise exception.NodePoolPolicyNotFound(nodepool_policy=id)
+
+            # destroy_function_resources(session, function_ref['id'])
+            query.delete()
 
     def _add_nodepool_filters(self, query, filters):
         if filters is None:
@@ -446,6 +483,15 @@ class Connection(api.Connection):
         return _paginate_query(models.NodePool, limit, marker,
                                sort_key, sort_dir, query)
 
+    def get_nodepool_by_id(self, context, nodepool_id):
+        query = model_query(models.NodePool)
+        # query = self._add_tenant_filters(context, query)
+        query = query.filter_by(id=nodepool_id)
+        try:
+            return query.one()
+        except NoResultFound:
+            raise exception.NodePoolNotFound(nodepool=nodepool_id)
+
     def create_nodepool(self, values):
         # ensure defaults are present for new funtions
         if not values.get('id'):
@@ -458,3 +504,68 @@ class Connection(api.Connection):
         except db_exc.DBDuplicateEntry:
             raise exception.NodePoolAlreadyExists(uuid=values['id'])
         return nodepool
+
+    def destroy_nodepool(self, id):
+        # def destroy_function_resources(session, id):
+        #     """Checks whether the function does not have resources."""
+            # query = model_query(models.Function, session=session)
+            # query = self._add_funtions_filters(query, {'id': function_id})
+            # if query.count() != 0:
+            #     query.delete()
+
+        session = get_session()
+        with session.begin():
+            query = model_query(models.NodePool, session=session)
+            query = add_identity_filter(query, id)
+
+            try:
+                function_ref = query.one()
+            except NoResultFound:
+                raise exception.FunctionNotFound(function=id)
+
+            # destroy_function_resources(session, function_ref['id'])
+            query.delete()
+
+    def update_nodepool(self, id, values):
+        # NOTE(dtantsur): this can lead to very strange errors
+        if 'id' in values:
+            msg = _("Cannot overwrite ID for an existing Function.")
+            raise exception.InvalidParameterValue(err=msg)
+
+        return self._do_update_nodepool(id, values)
+
+    def _do_update_nodepool(self, nodepool_id, values):
+        session = get_session()
+        with session.begin():
+            query = model_query(models.NodePool, session=session)
+            query = add_identity_filter(query, nodepool_id)
+            try:
+                ref = query.with_lockmode('update').one()
+            except NoResultFound:
+                raise exception.NodePoolNotFound(function=nodepool_id)
+
+            values['updated_at'] = timeutils.utcnow()
+
+            ref.update(values)
+        return ref
+
+    def destory_nodepool(self, id):
+        def destroy_function_resources(session, id):
+            """Checks whether the function does not have resources."""
+            # query = model_query(models.Function, session=session)
+            # query = self._add_funtions_filters(query, {'id': function_id})
+            # if query.count() != 0:
+            #     query.delete()
+
+        session = get_session()
+        with session.begin():
+            query = model_query(models.NodePool, session=session)
+            query = add_identity_filter(query, id)
+
+            try:
+                function_ref = query.one()
+            except NoResultFound:
+                raise exception.NodePoolNotFound(function=id)
+
+            # destroy_function_resources(session, function_ref['id'])
+            query.delete()

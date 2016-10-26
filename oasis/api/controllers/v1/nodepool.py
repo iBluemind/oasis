@@ -35,12 +35,11 @@ class NodePoolPatchType(types.JsonPatchType):
 
     @staticmethod
     def mandatory_attrs():
-        return ['/stack_id', 'project_id', 'user_id',
-                'function_id', 'nodepool_policy_id']
+        return []
 
     @staticmethod
     def internal_attrs():
-        internal_attrs = ['/host', '/name']
+        internal_attrs = []
         return types.JsonPatchType.internal_attrs() + internal_attrs
 
 
@@ -240,7 +239,7 @@ class NodePoolsController(rest.RestController):
         nodepool = objects.NodePool(context, **nodepool_dict)
         nodepool.create()
 
-        # pecan.request.conductor_rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
+        pecan.request.conductor_rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('nodepools',
@@ -257,15 +256,15 @@ class NodePoolsController(rest.RestController):
     @wsme.validate(types.uuid, [NodePoolPatchType])
     @expose.expose(NodePool, types.uuid_or_name, body=[NodePoolPatchType])
     def patch(self, nodepool_ident, patch):
-        """Update an existing bay.
+        """Update an existing nodepool.
 
-        :param bay_ident: UUID or logical name of a bay.
-        :param patch: a json PATCH document to apply to this bay.
+        :param bay_ident: UUID or logical name of a nodepool.
+        :param patch: a json PATCH document to apply to this nodepool.
         """
         context = pecan.request.context
         nodepool = api_utils.get_resource('NodePool', nodepool_ident)
-        policy.enforce(context, 'nodepool:update', nodepool,
-                       action='nodepool:update')
+        # policy.enforce(context, 'nodepool:update', nodepool,
+        #                action='nodepool:update')
         try:
             nodepool_dict = nodepool.as_dict()
             new_nodepool = NodePool(**api_utils.apply_jsonpatch(nodepool_dict, patch))
@@ -284,23 +283,25 @@ class NodePoolsController(rest.RestController):
             if nodepool[field] != patch_val:
                 nodepool[field] = patch_val
 
-        delta = nodepool.obj_what_changed()
+        # delta = nodepool.obj_what_changed()
 
         # validate_function_properties(delta)
 
-        res_nodepool = pecan.request.conductor_rpcapi.nodepool_update(nodepool)
+        # res_nodepool = pecan.request.conductor_rpcapi.nodepool_update(nodepool)
+        nodepool.save()
 
-        return NodePool.convert_with_links(res_nodepool)
+        return NodePool.convert_with_links(nodepool)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
     def delete(self, nodepool_ident):
         """Delete a nodepool.
 
-        :param nodepool_ident: UUID of a bay or logical name of the function.
+        :param nodepool_ident: UUID of a nodepool or logical name of the nodepool.
         """
         context = pecan.request.context
-        nodepool = api_utils.get_resource('Nodepool', nodepool_ident)
-        policy.enforce(context, 'nodepool:delete', nodepool,
-                       action='nodepool:delete')
+        nodepool = api_utils.get_resource('NodePool', nodepool_ident)
+        # policy.enforce(context, 'nodepool:delete', nodepool,
+        #                action='nodepool:delete')
 
-        pecan.request.conductor_rpcapi.function_delete(nodepool)
+        # pecan.request.conductor_rpcapi.function_delete(nodepool)
+        nodepool.destroy()

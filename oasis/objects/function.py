@@ -168,7 +168,7 @@ class Function(base.OasisPersistentObject, base.OasisObject,
                         A context should be set when instantiating the
                         object, e.g.: Function(context)
         """
-        self.dbapi.destroy_function(self.uuid)
+        self.dbapi.destroy_function(self.id)
         self.obj_reset_changes()
 
     @base.remotable
@@ -186,7 +186,7 @@ class Function(base.OasisPersistentObject, base.OasisObject,
                         object, e.g.: Function(context)
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_function(self.uuid, updates)
+        self.dbapi.update_function(self.id, updates)
 
         self.obj_reset_changes()
 

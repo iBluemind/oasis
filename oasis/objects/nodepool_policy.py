@@ -168,7 +168,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
                         A context should be set when instantiating the
                         object, e.g.: NodePool(context)
         """
-        self.dbapi.destroy_nodepool_policy(self.uuid)
+        self.dbapi.destroy_nodepool_policy(self.id)
         self.obj_reset_changes()
 
     @base.remotable
@@ -186,7 +186,7 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
                         object, e.g.: NodePool(context)
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_nodepool_policy(self.uuid, updates)
+        self.dbapi.update_nodepool_policy(self.id, updates)
 
         self.obj_reset_changes()
 

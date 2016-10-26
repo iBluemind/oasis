@@ -35,12 +35,7 @@ class NodePoolPolicyPatchType(types.JsonPatchType):
 
     @staticmethod
     def internal_attrs():
-        internal_attrs = ['/name', '/min_size', '/max_size', '/scaleup_adjust',
-                          '/scaleup_cooldown', '/scaleup_period',
-                          '/scaleup_evaluation_periods', '/scaleup_threshold',
-                          '/scaledown_adjust', '/scaledown_cooldown',
-                          '/scaledown_cooldown', '/scaledown_period',
-                          '/scaledown_evaluation_periods', '/scaledown_threshold']
+        internal_attrs = []
         return types.JsonPatchType.internal_attrs() + internal_attrs
 
 
@@ -235,8 +230,8 @@ class NodePoolPoliciesController(rest.RestController):
         """
         context = pecan.request.context
         nodepool_policy = api_utils.get_resource('NodePoolPolicy', nodepool_policy_ident)
-        policy.enforce(context, 'nodepool_policy:get', nodepool_policy,
-                       action='nodepool_policy:get')
+        # policy.enforce(context, 'nodepool_policy:get', nodepool_policy,
+        #                action='nodepool_policy:get')
 
         return NodePoolPolicy.convert_with_links(nodepool_policy)
 
@@ -278,8 +273,9 @@ class NodePoolPoliciesController(rest.RestController):
         """
         context = pecan.request.context
         nodepool_policy = api_utils.get_resource('NodePoolPolicy', nodepool_policy_ident)
-        policy.enforce(context, 'nodepool_policy:update', nodepool_policy,
-                       action='nodepool_policy:update')
+
+        # policy.enforce(context, 'nodepool_policy:update', nodepool_policy,
+        #                action='nodepool_policy:update')
         try:
             nodepool_policy_dict = nodepool_policy.as_dict()
             new_nodepool_policy = NodePoolPolicy(**api_utils.apply_jsonpatch(nodepool_policy_dict, patch))
@@ -298,22 +294,23 @@ class NodePoolPoliciesController(rest.RestController):
             if nodepool_policy[field] != patch_val:
                 nodepool_policy[field] = patch_val
 
-        delta = nodepool_policy.obj_what_changed()
-
+        # delta = nodepool_policy.obj_what_changed()
+        nodepool_policy.save()
         # validate_function_properties(delta)
 
-        res_nodepool_policy = pecan.request.rpcapi.bay_update(nodepool_policy)
-        return NodePoolPolicy.convert_with_links(res_nodepool_policy)
+        # res_nodepool_policy = pecan.request.rpcapi.bay_update(nodepool_policy)
+        return NodePoolPolicy.convert_with_links(nodepool_policy)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
-    def delete(self):
-        """Delete a bay.
+    def delete(self, policy_ident):
+        """Delete a policy.
 
-        :param bay_ident: UUID of a bay or logical name of the bay.
+        :param policy_ident: ID of a policy or logical name of the policy.
         """
         context = pecan.request.context
-        # nodepool_policy = api_utils.get_resource('NodePoolPolicy', "dd")
-        # policy.enforce(context, 'nodepool_policy:delete', nodepool_policy,
-        #                action='nodepool_policy:delete')
-        print 'Delete test ......'
-        pecan.request.rpcapi.test()
+        nodepool_policy = api_utils.get_resource('NodePoolPolicy', policy_ident)
+        # policy.enforce(context, 'function:delete', function,
+        #                action='function:delete')
+        nodepool_policy.destroy()
+        # pecan.request.agent_rpcapi.function_delete(function)
+

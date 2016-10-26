@@ -165,7 +165,7 @@ class NodePool(base.OasisPersistentObject, base.OasisObject,
                         A context should be set when instantiating the
                         object, e.g.: NodePool(context)
         """
-        self.dbapi.destroy_nodepool(self.uuid)
+        self.dbapi.destroy_nodepool(self.id)
         self.obj_reset_changes()
 
     @base.remotable
@@ -183,7 +183,7 @@ class NodePool(base.OasisPersistentObject, base.OasisObject,
                         object, e.g.: NodePool(context)
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_nodepool(self.uuid, updates)
+        self.dbapi.update_nodepool(self.id, updates)
 
         self.obj_reset_changes()
 

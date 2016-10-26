@@ -30,6 +30,9 @@ from oasis.common import policy
 from oasis import objects
 from oasis.objects import fields
 
+from oslo_log import log as logging
+LOG = logging.getLogger(__name__)
+
 
 class FunctionPatchType(types.JsonPatchType):
 
@@ -39,10 +42,7 @@ class FunctionPatchType(types.JsonPatchType):
 
     @staticmethod
     def internal_attrs():
-        internal_attrs = ['/name', '/body', '/stack_id',
-                          '/ca_cert_ref', '/oasis_cert_ref',
-                          '/trust_id', '/trustee_user_name',
-                          '/trustee_password', '/trustee_user_id']
+        internal_attrs = ['/project_id']
         return types.JsonPatchType.internal_attrs() + internal_attrs
 
 
@@ -274,7 +274,7 @@ class FunctionsController(rest.RestController):
 
         function.create()
 
-        # pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
+        pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
 
         # Set the HTTP Location Header
         # pecan.response.location = link.build_url('functions',
@@ -291,11 +291,13 @@ class FunctionsController(rest.RestController):
         """
         context = pecan.request.context
         function = api_utils.get_resource('Function', function_ident)
-        policy.enforce(context, 'function:update', function,
-                       action='function:update')
+
+        # policy.enforce(context, 'function:update', function,
+        #                action='function:update')
         try:
             function_dict = function.as_dict()
             new_function = Function(**api_utils.apply_jsonpatch(function_dict, patch))
+            LOG.debug(new_function)
         except api_utils.JSONPATCH_EXCEPTIONS as e:
             raise exception.PatchError(patch=patch, reason=e)
 
@@ -311,12 +313,12 @@ class FunctionsController(rest.RestController):
             if function[field] != patch_val:
                 function[field] = patch_val
 
-        delta = function.obj_what_changed()
-
+        # delta = function.obj_what_changed()
+        function.save()
         # validate_function_properties(delta)
 
-        res_function = pecan.request.agent_rpcapi.function_update(function)
-        return Function.convert_with_links(res_function)
+        # res_function = pecan.request.agent_rpcapi.function_update(function)
+        return Function.convert_with_links(function)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
     def delete(self, function_ident):
@@ -328,5 +330,7 @@ class FunctionsController(rest.RestController):
         function = api_utils.get_resource('Function', function_ident)
         policy.enforce(context, 'function:delete', function,
                        action='function:delete')
+        function.destroy()
+        # pecan.request.agent_rpcapi.function_delete(function)
 
-        pecan.request.agent_rpcapi.function_delete(function)
+
