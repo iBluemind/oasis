@@ -98,9 +98,9 @@ class Function(base.APIBase):
     @staticmethod
     def _convert_with_links(function, url, expand=True):
         if not expand:
-            function.unset_fields_except(['id', 'name', 'project_id',
+            function.unset_fields_except(['id', 'name',
                                      'status', 'status_reason', 'desc',
-                                     'nodepool_id', 'endpoint_id', 'user_id',
+                                     'nodepool_id', 'endpoint_id',
                                      'body', 'stack_id', 'created_at'])
 
             function.links = [link.Link.make_link('self', url,
@@ -239,6 +239,7 @@ class FunctionsController(rest.RestController):
         :param function_ident: UUID of a function or logical name of the function.
         """
         context = pecan.request.context
+
         function = api_utils.get_resource('Function', function_ident)
         policy.enforce(context, 'function:get', function,
                        action='function:get')

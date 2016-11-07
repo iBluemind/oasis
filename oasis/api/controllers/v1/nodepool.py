@@ -52,9 +52,11 @@ class NodePool(base.APIBase):
 
     id = types.uuid
 
-    project_id = types.uuid
+    project_id = wsme.wsattr(wtypes.text, readonly=True)
+    """Stack id of the heat stack"""
 
-    user_id = types.uuid
+    user_id = wsme.wsattr(wtypes.text, readonly=True)
+    """Stack id of the heat stack"""
 
     stack_id = types.uuid
 
@@ -217,13 +219,9 @@ class NodePoolsController(rest.RestController):
     def get_one(self, nodepool_ident):
         """Retrieve information about the given bay.
 
-        :param nodepool_ident: UUID of a bay or logical name of the bay.
+        :param nodepool_ident: ID of a nodepool or logical name of the nodepool.
         """
-        context = pecan.request.context
         nodepool = api_utils.get_resource('NodePool', nodepool_ident)
-        policy.enforce(context, 'nodepool:get', nodepool,
-                       action='nodepool:get')
-
         return NodePool.convert_with_links(nodepool)
 
     @expose.expose(NodePool, body=NodePool, status_code=201)
@@ -236,14 +234,16 @@ class NodePoolsController(rest.RestController):
         policy.enforce(context, 'nodepool:create',
                        action='nodepool:create')
         nodepool_dict = nodepool.as_dict()
-        nodepool = objects.NodePool(context, **nodepool_dict)
-        nodepool.create()
+        nodepool_dict['project_id'] = context.project_id
+        nodepool_dict['user_id'] = context.user_id
 
-        pecan.request.conductor_rpcapi.nodepool_create(nodepool, nodepool_create_timeout=10000)
+        nodepool = objects.NodePool(context, **nodepool_dict)
+        # nodepool.create()
+
+        pecan.request.rpcapi.nodepool_create(nodepool, nodepool_create_timeout=30000)
 
         # Set the HTTP Location Header
-        pecan.response.location = link.build_url('nodepools',
-                                                 nodepool.id)
+        # pecan.response.location = link.build_url('nodepools', nodepool.id)
         return NodePool.convert_with_links(nodepool)
 
         # res_nodepool = pecan.request.conductor_rpcapi.nodepool_create(nodepool,
@@ -267,6 +267,8 @@ class NodePoolsController(rest.RestController):
         #                action='nodepool:update')
         try:
             nodepool_dict = nodepool.as_dict()
+            nodepool_dict['project_id'] = context.project_id
+            nodepool_dict['user_id'] = context.user_id
             new_nodepool = NodePool(**api_utils.apply_jsonpatch(nodepool_dict, patch))
         except api_utils.JSONPATCH_EXCEPTIONS as e:
             raise exception.PatchError(patch=patch, reason=e)

@@ -20,16 +20,16 @@ import os
 from oslo_config import cfg
 
 PATH_OPTS = [
-    # cfg.StrOpt('pybasedir',
-    #            default=os.path.abspath(os.path.join(os.path.dirname(__file__),
-    #                                                 '../')),
-    #            help='Directory where the oasis python module is installed.'),
-    # cfg.StrOpt('bindir',
-    #            default='$pybasedir/bin',
-    #            help='Directory where oasis binaries are installed.'),
-    # cfg.StrOpt('state_path',
-    #            default='$pybasedir',
-    #            help="Top-level directory for maintaining oasis' state."),
+    cfg.StrOpt('pybasedir',
+               default=os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                    '../')),
+               help='Directory where the oasis python module is installed.'),
+    cfg.StrOpt('bindir',
+               default='$pybasedir/bin',
+               help='Directory where oasis binaries are installed.'),
+    cfg.StrOpt('state_path',
+               default='$pybasedir',
+               help="Top-level directory for maintaining oasis' state."),
 ]
 
 CONF = cfg.CONF

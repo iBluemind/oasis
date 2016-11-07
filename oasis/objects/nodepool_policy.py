@@ -32,6 +32,8 @@ class NodePoolPolicy(base.OasisPersistentObject, base.OasisObject,
 
     fields = {
         'id': fields.StringField(),
+        'project_id': fields.StringField(),
+        'user_id': fields.StringField(),
         'name': fields.StringField(),
         'min_size': fields.IntegerField(nullable=True),
         'max_size': fields.IntegerField(nullable=True),

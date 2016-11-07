@@ -88,6 +88,8 @@ class NodePool(base.OasisPersistentObject, base.OasisObject,
         """
         db_nodepool = cls.dbapi.get_nodepool_by_id(context, nodepool_id)
         nodepool = NodePool._from_db_object(cls(context), db_nodepool)
+        # print 'zzzzzzzzzzzzzz'
+        # print nodepool.as_dict()
         return nodepool
 
     @base.remotable_classmethod

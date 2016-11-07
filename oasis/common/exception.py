@@ -353,3 +353,11 @@ class NodePoolAlreadyExists(Conflict):
 
 class NodePoolNotFound(ResourceNotFound):
     message = _("NodePool %(nodepool)s could not be found.")
+
+
+class HttpApiAlreadyExists(Conflict):
+    message = _("A httpapi with UUID %(uuid)s already exists.")
+
+
+class HttpApiNotFound(ResourceNotFound):
+    message = _("Httpapi %(httpapi)s could not be found.")

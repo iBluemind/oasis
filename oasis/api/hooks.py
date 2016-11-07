@@ -18,7 +18,6 @@ from pecan import hooks
 
 from oasis.common import context
 from oasis.conductor import api as conductor_api
-from oasis.agent import api as agent_api
 
 CONF = cfg.CONF
 CONF.import_opt('auth_uri', 'keystonemiddleware.auth_token',
@@ -80,8 +79,7 @@ class RPCHook(hooks.PecanHook):
     """Attach the rpcapi object to the request so controllers can get to it."""
 
     def before(self, state):
-        state.request.conductor_rpcapi = conductor_api.API(context=state.request.context)
-        state.request.agent_rpcapi = agent_api.AgentAPI(context=state.request.context)
+        state.request.rpcapi = conductor_api.API(context=state.request.context)
 
 
 class NoExceptionTracebackHook(hooks.PecanHook):

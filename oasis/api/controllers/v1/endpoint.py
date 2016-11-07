@@ -47,6 +47,12 @@ class Endpoint(base.APIBase):
     url = wtypes.StringType(min_length=1, max_length=255)
     """Url of this endpoint"""
 
+    project_id = wsme.wsattr(wtypes.text, readonly=True)
+    """Stack id of the heat stack"""
+
+    user_id = wsme.wsattr(wtypes.text, readonly=True)
+    """Stack id of the heat stack"""
+
     def __init__(self, **kwargs):
         super(Endpoint, self).__init__()
 
@@ -85,6 +91,7 @@ class EndpointCollection(collection.Collection):
 
     @staticmethod
     def convert_with_links(rpc_endpoints, limit, url=None, expand=False, **kwargs):
+
         collection = EndpointCollection()
         collection.endpoints = [Endpoint.convert_with_links(p, expand)
                                 for p in rpc_endpoints]
@@ -111,6 +118,10 @@ class EndpointsController(rest.RestController):
         endpoints = objects.Endpoint.list(pecan.request.context, limit,
                                           marker_obj, sort_key=sort_key,
                                           sort_dir=sort_dir)
+
+        print 'aaaa'
+        print endpoints
+        print 'aaaa'
 
         return EndpointCollection.convert_with_links(endpoints, limit,
                                                      url=resource_url,
@@ -145,6 +156,9 @@ class EndpointsController(rest.RestController):
                        action='endpoint:create')
         endpoint_dict = endpoint.as_dict()
 
+        endpoint_dict['project_id'] = context.project_id
+        endpoint_dict['user_id'] = context.user_id
+
         if endpoint_dict.get('name') is None:
             endpoint_dict['name'] = None
         if endpoint_dict.get('url') is None:
@@ -161,4 +175,17 @@ class EndpointsController(rest.RestController):
         # Set the HTTP Location Header
         # pecan.response.location = link.build_url('functions',
         #                                          function.id)
+        return Endpoint.convert_with_links(endpoint)
+
+    @expose.expose(Endpoint, types.uuid_or_name)
+    def get_one(self, endpoint_ident):
+        """Retrieve information about the given function.
+
+        :param function_ident: UUID of a function or logical name of the function.
+        """
+        context = pecan.request.context
+        endpoint = api_utils.get_resource('Endpoint', endpoint_ident)
+        # policy.enforce(context, 'endpoint:get', function,
+        #                action='endpoint:get')
+
         return Endpoint.convert_with_links(endpoint)

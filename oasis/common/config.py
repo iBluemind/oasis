@@ -28,7 +28,7 @@ def parse_args(argv, default_config_files=None):
              project='oasis',
              version=version.version_info.release_string(),
              default_config_files=default_config_files)
-    rpc.init(cfg.CONF)
+    # rpc.init(cfg.CONF)
 
 
 def set_config_defaults():

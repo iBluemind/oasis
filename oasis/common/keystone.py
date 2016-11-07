@@ -128,6 +128,7 @@ class KeystoneClientV3(object):
             kwargs.update(self._get_admin_credentials())
             kwargs['trust_id'] = self.context.trust_id
             kwargs.pop('project_name')
+            print 'qwer'
         elif self.context.auth_token_info:
             kwargs['token'] = self.context.auth_token
             if self._is_v2_valid(self.context.auth_token_info):
@@ -135,6 +136,7 @@ class KeystoneClientV3(object):
                 kwargs['auth_ref'] = self.context.auth_token_info['access']
                 kwargs['auth_ref']['version'] = 'v2.0'
                 kwargs['auth_ref']['auth_token'] = self.context.auth_token
+                print 'asdf'
             elif self._is_v3_valid(self.context.auth_token_info):
                 kwargs['auth_ref'] = self.context.auth_token_info['token']
                 kwargs['auth_ref']['version'] = 'v3'
