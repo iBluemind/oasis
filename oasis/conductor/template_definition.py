@@ -31,6 +31,15 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 CONF.import_opt('trustee_domain_id', 'oasis.common.keystone', group='trust')
 
+template_def_opts = [
+    cfg.StrOpt('nodepool_template_path',
+           default=paths.basedir_def('templates/server-nodepool.yaml'),
+           help=_('Location of template to build a Mesos cluster '
+                  'on Ubuntu.')),
+]
+
+CONF.register_opts(template_def_opts)
+
 
 class ParameterMapping(object):
     """A mapping associating heat param and bay/baymodel attr.
@@ -132,7 +141,7 @@ class TemplateDefinition(object):
                 return output
         return None
 
-    def get_params(self, context, nodepool, **kwargs):
+    def get_params(self, context, nodepool, nodepool_policy, **kwargs):
         """Pulls template parameters from Baymodel and/or Bay.
 
         :param context: Context to pull template parameters for
@@ -169,28 +178,31 @@ class TemplateDefinition(object):
         for output in self.output_mappings:
             output.set_output(stack)
 
-    def extract_definition(self, context, nodepool, **kwargs):
-        return self.template_path, self.get_params(context, nodepool, **kwargs)
+    def extract_definition(self, context, nodepool, nodepool_policy, **kwargs):
+        return self.template_path, self.get_params(context, nodepool, nodepool_policy, **kwargs)
 
-
-class BaseTemplateDefinition(TemplateDefinition):
     @abc.abstractproperty
     def template_path(self):
         pass
 
-    def get_params(self, context, nodepool, **kwargs):
-        extra_params = kwargs.pop('extra_params', {})
-        extra_params['trustee_domain_id'] = CONF.trust.trustee_domain_id
-        extra_params['trustee_user_id'] = context.trustee_user_id
-        extra_params['trustee_username'] = context.trustee_username
-        extra_params['trustee_password'] = context.trustee_password
-        extra_params['trust_id'] = context.trust_id
-        extra_params['auth_url'] = context.auth_url
 
-        return super(BaseTemplateDefinition,
-                     self).get_params(context, nodepool,
-                                      extra_params=extra_params,
-                                      **kwargs)
+class BaseTemplateDefinition(TemplateDefinition):
+
+    @abc.abstractproperty
+    def template_path(self):
+        pass
+
+    def get_params(self, context, nodepool, nodepool_policy, **kwargs):
+        extra_params = kwargs.pop('extra_params', {})
+        # extra_params['trustee_domain_id'] = CONF.trust.trustee_domain_id
+        # extra_params['trustee_user_id'] = nodepool.trustee_user_id
+        # extra_params['trustee_username'] = nodepool.trustee_username
+        # extra_params['trustee_password'] = nodepool.trustee_password
+        # extra_params['trust_id'] = nodepool.trust_id
+        # extra_params['auth_url'] = context.auth_url
+
+        return super(BaseTemplateDefinition, self).get_params(context, nodepool, nodepool_policy,
+                                                              extra_params=extra_params, **kwargs)
 
     def _get_user_token(self, context, osc, bay):
         """Retrieve user token from the Heat stack or context.
@@ -210,27 +222,32 @@ class BaseTemplateDefinition(TemplateDefinition):
 class NodePoolTemplateDefinition(BaseTemplateDefinition):
 
     def __init__(self):
-        super(NodePoolTemplateDefinition).__init__()
-        self.add_parameter('flavor', node_attr='flavor')
-        self.add_parameter('image', node_attr='image')
-        self.add_parameter('private_network', node_pool_attr='private_network')
-        self.add_parameter('public_network', node_pool_attr='public_network')
-        self.add_parameter('subnet', node_pool_attr='subnet')
-        self.add_parameter('key_name', node_attr='key_name')
+        super(NodePoolTemplateDefinition, self).__init__()
+        # self.add_parameter('flavor', nodepool_attr='flavor')
+        # self.add_parameter('image', nodepool_attr='image')
+        # self.add_parameter('key_name', nodepool_attr='key_name')
 
-    def get_params(self, context, nodepool, **kwargs):
+    def get_params(self, context, nodepool, nodepool_policy, **kwargs):
         extra_params = kwargs.pop('extra_params', {})
-        # HACK(apmelton) - This uses the user's bearer token, ideally
-        # it should be replaced with an actual trust token with only
-        # access to do what the template needs it to do.
         osc = clients.OpenStackClients(context)
-        extra_params['auth_url'] = context.auth_url
-        extra_params['username'] = context.user_name
-        extra_params['tenant_name'] = context.tenant
-        extra_params['domain_name'] = context.domain_name
-        extra_params['region_name'] = osc.cinder_region_name()
+        extra_params['min_size'] = nodepool_policy.min_size
+        extra_params['max_size'] = nodepool_policy.max_size
+        extra_params['scaleup_adjust'] = nodepool_policy.scaleup_adjust
+        extra_params['scaleup_cooldown'] = nodepool_policy.scaleup_cooldown
+        extra_params['scaleup_period'] = nodepool_policy.scaleup_period
+        extra_params['scaleup_evaluation_periods'] = nodepool_policy.scaleup_evaluation_periods
+        extra_params['scaleup_threshold'] = nodepool_policy.scaleup_threshold
+        extra_params['scaledown_adjust'] = nodepool_policy.scaledown_adjust
+        extra_params['scaledown_cooldown'] = nodepool_policy.scaledown_cooldown
+        extra_params['scaledown_period'] = nodepool_policy.scaledown_period
+        extra_params['scaledown_evaluation_periods'] = nodepool_policy.scaledown_evaluation_periods
+        extra_params['scaledown_threshold'] = nodepool_policy.scaledown_threshold
+
 
         return super(NodePoolTemplateDefinition,
-                     self).get_params(context, nodepool,
+                     self).get_params(context, nodepool, nodepool_policy,
                                       extra_params=extra_params,
                                       **kwargs)
+    @property
+    def template_path(self):
+        return cfg.CONF.nodepool_template_path

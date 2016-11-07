@@ -15,6 +15,8 @@ class Endpoint(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDic
 
     fields = {
         'id': fields.StringField(),
+        'project_id': fields.StringField(nullable=True),
+        'user_id': fields.StringField(nullable=True),
         'name': fields.StringField(nullable=True),
         'url': fields.StringField(nullable=True),
         'desc': fields.StringField(nullable=True)

@@ -1,0 +1,261 @@
+heat_template_version: 2015-10-15
+
+description: A Group of Load Balanced Servers
+
+parameters:
+  app_port:
+    type: number
+    default: 8080
+    description: Port used by the servers
+  flavor:
+    type: string
+    description: Flavor used for servers
+    default: m1.heat
+    constraints:
+    - custom_constraint: nova.flavor
+  image:
+    type: string
+    description: Image used for servers
+    default: oasis5
+    constraints:
+    - custom_constraint: glance.image
+  lb_port:
+    type: number
+    default: 80
+    description: Port used by the load balancer
+  private_network:
+    type: string
+    description: Network used by the servers
+    default: private
+    constraints:
+    - custom_constraint: neutron.network
+  public_network:
+    type: string
+    description: Network used by the load balancer
+    default: public
+    constraints:
+    - custom_constraint: neutron.network
+  subnet:
+    type: string
+    description: Subnet on which the load balancer will be located
+    default: private-subnet
+  key_name:
+    type: string
+    description: Name of an existing key pair to use for the instances
+    default: my_key
+    constraints:
+      - custom_constraint: nova.keypair
+        description: Must name a public key (pair) known to Nova
+  min_size:
+    type: number
+    default: 1
+    description: ASG Min Size
+  max_size:
+    type: number
+    default: 1000
+    description: ASG Max Size
+  scaleup_adjust:
+    type: number
+    default: 10
+    description: ASG scaleup_adjust
+  scaleup_cooldown:
+    type: number
+    default: 10
+    description: ASG scaleup_cooldown
+  scaleup_period:
+    type: number
+    default: 10
+    description: ASG scaleup_period
+  scaleup_evaluation_periods:
+    type: number
+    default: 10
+    description: ASG scaleup_evaluation_periods
+  scaleup_threshold:
+    type: number
+    default: 10
+    description: ASG scaleup_threshold
+  scaledown_adjust:
+    type: number
+    default: 10
+    description: ASG scaledown_adjust
+  scaledown_cooldown:
+    type: number
+    default: 10
+    description: ASG scaledown_cooldown
+  scaledown_period:
+    type: number
+    default: 10
+    description: ASG scaledown_period
+  scaledown_evaluation_periods:
+    type: number
+    default: 10
+    description: ASG Max Size
+  scaledown_threshold:
+    type: number
+    default: 10
+    description: ASG scaledown_threshold
+
+
+resources:
+  pool:
+    type: OS::Neutron::LBaaS::Pool
+    properties:
+      lb_algorithm: ROUND_ROBIN
+      protocol: HTTP
+      listener: { get_resource: listener }
+  asg:
+    type: OS::Heat::AutoScalingGroup
+    properties:
+      resource:
+        type: server-node.yaml
+        properties:
+          image: { get_param: image }
+          key_name: { get_param: key_name }
+          flavor: { get_param: flavor }
+          pool_id: { get_resource: pool }
+          user_data:
+            str_replace:
+              template: |
+                function ini_has_option {
+                    local xtrace
+                    xtrace=$(set +o | grep xtrace)
+                    set +o xtrace
+                    local file=$1
+                    local section=$2
+                    local option=$3
+                    local line
+
+                    line=$(sed -ne "/^\[$section\]/,/^\[.*\]/ { /^$option[ \t]*=/ p; }" "$file")
+                    $xtrace
+                    [ -n "$line" ]
+                }
+
+                function iniset {
+                    local xtrace
+                    xtrace=$(set +o | grep xtrace)
+                    set +o xtrace
+                    local sudo=""
+                    if [ $1 == "-sudo" ]; then
+                        sudo="sudo "
+                        shift
+                    fi
+                    local file=$1
+                    local section=$2
+                    local option=$3
+                    local value=$4
+
+                    if [[ -z $section || -z $option ]]; then
+                        $xtrace
+                        return
+                    fi
+
+                    if ! grep -q "^\[$section\]" "$file" 2>/dev/null; then
+                        # Add section at the end
+                        echo -e "\n[$section]" | $sudo tee —append "$file" > /dev/null
+                    fi
+                    if ! ini_has_option "$file" "$section" "$option"; then
+                        # Add it
+                        $sudo sed -i -e "/^\[$section\]/ a\\
+                $option = $value
+                " "$file"
+                    else
+                        local sep
+                        sep=$(echo -ne "\x01")
+                        # Replace it
+                        $sudo sed -i -e '/^\['${section}'\]/,/^\[.*\]/ s'${sep}'^\('${option}'[ \t]*=[ \t]*\).*$'${sep}'\1'"${value}"${sep} "$file"
+                    fi
+                    $xtrace
+                }
+
+                OASIS_AGENT_CONF_DIR=/etc/oasis-agent
+                OASIS_AGENT_CONF=$OASIS_AGENT_CONF_DIR/oasis-agent.conf
+
+                iniset $OASIS_AGENT_CONF oslo_messaging_rabbit rabbit_userid $RABBIT_USERID
+                iniset $OASIS_AGENT_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
+                inset $OASIS_AGENT_CONF slo_messaging_rabbit rabbit_host $RABBIT_HOST
+
+                oasisagent
+              params:
+                PORT: { get_param: app_port }
+          metadata: {"metering.stack": {get_param: "OS::stack_id"}}
+          network: { get_param: private_network }
+          subnet: { get_param: subnet }
+          app_port: { get_param: app_port }
+      min_size: {get_param: min_size}
+      desired_capacity: 1
+      max_size: {get_param: max_size}
+  scale_up_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: {get_resource: asg}
+      cooldown: {get_param : scaleup_cooldown}
+      scaling_adjustment: {get_param : scaleup_adjust}
+  scale_dn_policy:
+    type: OS::Heat::ScalingPolicy
+    properties:
+      adjustment_type: change_in_capacity
+      auto_scaling_group_id: {get_resource: asg}
+      cooldown: {get_param : scaledown_cooldown}
+      scaling_adjustment: {get_param : scaledown_adjust}
+  cpu_alarm_high:
+    type: OS::Ceilometer::Alarm
+    properties:
+      description: Scale-up if the average CPU > 50% for 1 minute
+      meter_name: cpu_util
+      statistic: avg
+      period: {get_param : scaleup_period}
+      evaluation_periods: {get_param : scaleup_evaluation_periods}
+      threshold: {get_param : scaleup_threshold}
+      alarm_actions:
+        - {get_attr: [scale_up_policy, alarm_url]}
+      matching_metadata: {'metadata.user_metadata.stack': {get_param: "OS::stack_id"}}
+      comparison_operator: gt
+  cpu_alarm_low:
+    type: OS::Ceilometer::Alarm
+    properties:
+      description: Scale-down if the average CPU < 15% for 10 minutes
+      meter_name: cpu_util
+      statistic: avg
+      period: {get_param : scaledown_period}
+      evaluation_periods: {get_param : scaledown_evaluation_periods}
+      threshold: {get_param : scaledown_threshold}
+      alarm_actions:
+        - {get_attr: [scale_dn_policy, alarm_url]}
+      matching_metadata: {'metadata.user_metadata.stack': {get_param: "OS::stack_id"}}
+      comparison_operator: lt
+  monitor:
+    type: OS::Neutron::LBaaS::HealthMonitor
+    properties:
+      delay: 3
+      type: HTTP
+      timeout: 3
+      max_retries: 3
+      pool: { get_resource: pool }
+  listener:
+    type: OS::Neutron::LBaaS::Listener
+    properties:
+      loadbalancer: { get_resource: loadbalancer }
+      protocol: HTTP
+      protocol_port: { get_param: lb_port }
+  loadbalancer:
+    type: OS::Neutron::LBaaS::LoadBalancer
+    properties:
+      vip_subnet: { get_param: subnet }
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+      port_id: { get_attr: [loadbalancer, vip_port_id ]}
+
+outputs:
+  lburl:
+    value:
+      str_replace:
+        template: http://IP_ADDRESS:PORT
+        params:
+          IP_ADDRESS: { get_attr: [ floating_ip, floating_ip_address ] }
+          PORT: { get_param: lb_port }
+    description: >
+      This URL is the "external" URL that can be used to access the
+      load balancer.

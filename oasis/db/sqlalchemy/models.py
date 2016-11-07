@@ -119,10 +119,10 @@ class Function(Base, TimestampMixin):
     desc = Column(Text)
     nodepool_id = Column(String(36))
     endpoint_id = Column(String(36))
-    trust_id = Column(String(255))
-    trustee_username = Column(String(255))
-    trustee_user_id = Column(String(255))
-    trustee_password = Column(String(255))
+    # trust_id = Column(String(255))
+    # trustee_username = Column(String(255))
+    # trustee_user_id = Column(String(255))
+    # trustee_password = Column(String(255))
 
 
 class Endpoint(Base, TimestampMixin):
@@ -134,6 +134,8 @@ class Endpoint(Base, TimestampMixin):
     name = Column(Text)
     desc = Column(Text)
     url = Column(String(255))
+    project_id = Column(String(36))
+    user_id = Column(String(36))
 
 
 class HttpApi(Base, TimestampMixin):
@@ -203,6 +205,8 @@ class NodePoolPolicy(Base, TimestampMixin):
     )
 
     id = Column('id', String(36), primary_key=True, default=lambda: UUID4())
+    project_id = Column(String(36))
+    user_id = Column(String(36))
     name = Column(String(255))
     min_size = Column(Integer())
     max_size = Column(Integer())

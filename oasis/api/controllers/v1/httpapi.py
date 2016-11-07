@@ -58,7 +58,7 @@ class HttpApi(base.APIBase):
     @staticmethod
     def _convert_with_links(httpapi, url, expand=True):
         if not expand:
-            httpapi.unset_fields_except(['id', 'method', 'endpoint_id', 'created_at'])
+            httpapi.unset_fields_except(['id', 'method', 'endpoint_id',])
 
             httpapi.links = [link.Link.make_link('self', url,
                                          'httpapis', httpapi.id),
@@ -83,9 +83,10 @@ class HttpApiCollection(collection.Collection):
     @staticmethod
     def convert_with_links(rpc_httpapis, limit, url=None, expand=False, **kwargs):
         collection = HttpApiCollection()
-        collection.endpoints = [HttpApi.convert_with_links(p, expand)
+        collection.httpapis = [HttpApi.convert_with_links(p, expand)
                                 for p in rpc_httpapis]
         collection.next = collection.get_next(limit, url=url, **kwargs)
+
         return collection
 
 
@@ -95,41 +96,52 @@ class HttpApisController(rest.RestController):
         super(HttpApisController, self).__init__()
 
     def _get_httpapis_collection(self, marker, limit, sort_key,
-                                  sort_dir, expand=False, resource_url=None):
+                                  sort_dir, expand=False, resource_url=None, endpoint_id=None):
 
+        context = pecan.request.context
         limit = api_utils.validate_limit(limit)
         sort_dir = api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
+
         if marker:
             marker_obj = objects.HttpApi.get_by_id(pecan.request.context,
                                                     marker)
 
-        endpoints = objects.HttpApi.list(pecan.request.context, limit,
-                                          marker_obj, sort_key=sort_key,
-                                          sort_dir=sort_dir)
+        filters = {'endpoint_id': endpoint_id}
 
-        return HttpApiCollection.convert_with_links(endpoints, limit,
+        httpapis = objects.HttpApi.list(context,
+                                        limit,
+                                        marker_obj,
+                                        sort_key,
+                                        sort_dir,
+                                        filters=filters)
+
+        print 'ssss'
+        print httpapis
+        print 'ssss'
+
+        return HttpApiCollection.convert_with_links(httpapis, limit,
                                                      url=resource_url,
                                                      expand=expand,
                                                      sort_key=sort_key,
                                                      sort_dir=sort_dir)
 
-    @expose.expose(HttpApiCollection, types.uuid, int, wtypes.text,
-                   wtypes.text)
-    def get_all(self, marker=None, limit=None, sort_key='id',
-                sort_dir='asc'):
-        """Retrieve a list of httpapis.
-
-        :param marker: pagination marker for large data sets.
-        :param limit: maximum number of resources to return in a single result.
-        :param sort_key: column to sort results by. Default: id.
-        :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
-        """
-        context = pecan.request.context
-        policy.enforce(context, 'httpapi:get_all',
-                       action='httpapi:get_all')
-        return self._get_httpapis_collection(marker, limit, sort_key, sort_dir)
+    # @expose.expose(HttpApiCollection, types.uuid, int, wtypes.text,
+    #                wtypes.text, types.uuid)
+    # def get_all(self, marker=None, limit=None, sort_key='id',
+    #             sort_dir='asc', endpoint_id=None):
+    #     """Retrieve a list of httpapis.
+    #
+    #     :param marker: pagination marker for large data sets.
+    #     :param limit: maximum number of resources to return in a single result.
+    #     :param sort_key: column to sort results by. Default: id.
+    #     :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
+    #     """
+    #     context = pecan.request.context
+    #     policy.enforce(context, 'httpapi:get_all',
+    #                    action='httpapi:get_all')
+    #     return self._get_httpapis_collection(marker, limit, sort_key, sort_dir, endpoint_id)
 
     @expose.expose(HttpApi, body=HttpApi, status_code=201)
     def post(self, httpapi):
@@ -141,6 +153,9 @@ class HttpApisController(rest.RestController):
         policy.enforce(context, 'httpapi:create',
                        action='httpapi:create')
         httpapi_dict = httpapi.as_dict()
+
+        httpapi_dict['project_id'] = context.project_id
+        httpapi_dict['user_id'] = context.user_id
 
         if httpapi_dict.get('method') is None:
             httpapi_dict['method'] = None
@@ -157,3 +172,13 @@ class HttpApisController(rest.RestController):
         # pecan.response.location = link.build_url('functions',
         #                                          function.id)
         return HttpApi.convert_with_links(httpapi)
+
+    @expose.expose(HttpApiCollection, types.uuid_or_name)
+    def get_one(self, endpoint_ident):
+        """Retrieve information about the given bay.
+
+        :param nodepool_ident: ID of a nodepool or logical name of the nodepool.
+        """
+
+        return self._get_httpapis_collection(marker=None, limit=None, sort_key='id',
+                                             sort_dir='asc', endpoint_id=endpoint_ident)

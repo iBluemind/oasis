@@ -137,7 +137,7 @@ class Connection(api.Connection):
     def get_endpoint_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
         query = model_query(models.Endpoint)
-        # query = self._add_tenant_filters(context, query)
+        query = self._add_tenant_filters(context, query)
         # query = self._add_funtions_filters(query, filters)
         return _paginate_query(models.Endpoint, limit, marker,
                                sort_key, sort_dir, query)
@@ -162,7 +162,7 @@ class Connection(api.Connection):
         try:
             return query.one()
         except NoResultFound:
-            raise exception.EndpointNotFound(function=endpoint_id)
+            raise exception.EndpointNotFound(endpoint=endpoint_id)
 
     def get_endpoint_by_name(self, context, endpoint_name):
         query = model_query(models.Endpoint)
@@ -176,9 +176,47 @@ class Connection(api.Connection):
         except NoResultFound:
             raise exception.EndpointNotFound(function=endpoint_name)
 
-    def get_httpapi_list(self, context):
+    def _add_httpapis_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+        print 'hhhh'
+        print filters['endpoint_id']
+        print 'hhhh'
+        query = query.filter_by(**{'endpoint_id': filters['endpoint_id']})
+
+        return query
+
+    def get_nodepool_policy_by_name(self, context, policy_name):
+        query = model_query(models.NodePoolPolicy)
+        query = self._add_tenant_filters(context, query)
+        query = query.filter_by(name=policy_name)
+        try:
+            return query.one()
+        except MultipleResultsFound:
+            raise exception.Conflict('Multiple policy exist with same name.'
+                                     ' Please use the endpoint uuid instead.')
+        except NoResultFound:
+            raise exception.NodePoolPolicyNotFound(function=policy_name)
+
+    def get_httpapi_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
         query = model_query(models.HttpApi)
-        return _paginate_query(models.HttpApi, '', '', '', '', query)
+        query = self._add_httpapis_filters(query, filters)
+        return _paginate_query(models.HttpApi, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def get_httpapi_by_id(self, context, endpoint_id):
+        query = model_query(models.HttpApi)
+        query = query.filter_by(endpoint_id=endpoint_id)
+        try:
+            return query.all()
+        except MultipleResultsFound:
+            raise exception.HttpApiAlreadyExists(httpapi=endpoint_id)
+        except NoResultFound:
+            raise exception.HttpApiNotFound(httpapi=endpoint_id)
+
+        # return _paginate_query(models.HttpApi, None, None,
+        #                        'id', 'asc', query)
 
     def create_httpapi(self, values):
         # ensure defaults are present for new endpoint
@@ -190,7 +228,7 @@ class Connection(api.Connection):
         try:
             httpapi.save()
         except db_exc.DBDuplicateEntry:
-            raise exception.EndpointAlreadyExists(uuid=values['uuid'])
+            raise exception.HttpApiAlreadyExists(uuid=values['uuid'])
         return httpapi
 
     def create_request(self, values):
@@ -219,9 +257,11 @@ class Connection(api.Connection):
             raise exception.EndpointAlreadyExists(uuid=values['uuid'])
         return request_header
 
-    def get_request_header_list(self, context):
+    def get_request_header_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
         query = model_query(models.RequestHeader)
-        return _paginate_query(models.RequestHeader, '', '', '', '', query)
+        return _paginate_query(models.RequestHeader, limit, marker,
+                               sort_key, sort_dir, query)
 
     def create_response(self, values):
         # ensure defaults are present for new endpoint
@@ -262,13 +302,17 @@ class Connection(api.Connection):
             raise exception.EndpointAlreadyExists(uuid=values['uuid'])
         return response_message
 
-    def get_response_message_list(self, context):
+    def get_response_message_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
         query = model_query(models.ResponseErrorMessage)
-        return _paginate_query(models.ResponseErrorMessage, '', '', '', '', query)
+        return _paginate_query(models.ResponseErrorMessage, limit, marker,
+                               sort_key, sort_dir, query)
 
-    def get_response_code_list(self, context):
+    def get_response_code_list(self, context, filters=None, limit=None,
+                     marker=None, sort_key=None, sort_dir=None):
         query = model_query(models.ResponseStatusCode)
-        return _paginate_query(models.ResponseStatusCode, '', '', '', '', query)
+        return _paginate_query(models.ResponseStatusCode, limit, marker,
+                               sort_key, sort_dir, query)
 
     def get_function_list(self, context, filters=None, limit=None, marker=None,
                      sort_key=None, sort_dir=None):
@@ -386,20 +430,31 @@ class Connection(api.Connection):
     def get_nodepool_policy_list(self, context, filters=None, limit=None, marker=None,
                      sort_key=None, sort_dir=None):
         query = model_query(models.NodePoolPolicy)
-        # query = self._add_tenant_filters(context, query)
+        query = self._add_tenant_filters(context, query)
         query = self._add_nodepool_policy_filters(query, filters)
         return _paginate_query(models.NodePoolPolicy, limit, marker,
                                sort_key, sort_dir, query)
 
     def get_nodepool_policy_by_id(self, context, nodepool_policy_id):
         query = model_query(models.NodePoolPolicy)
-        # query = self._add_tenant_filters(context, query)
+        query = self._add_tenant_filters(context, query)
         query = query.filter_by(id=nodepool_policy_id)
         try:
             return query.one()
         except NoResultFound:
             raise exception.NodePoolPolicyNotFound(nodepool_policy=nodepool_policy_id)
 
+    def get_nodepool_policy_by_name(self, context, policy_name):
+        query = model_query(models.NodePoolPolicy)
+        query = self._add_tenant_filters(context, query)
+        query = query.filter_by(name=policy_name)
+        try:
+            return query.one()
+        except MultipleResultsFound:
+            raise exception.Conflict('Multiple policy exist with same name.'
+                                     ' Please use the endpoint uuid instead.')
+        except NoResultFound:
+            raise exception.NodePoolPolicyNotFound(function=policy_name)
 
     def create_nodepool_policy(self, values):
         # ensure defaults are present for new funtions
@@ -478,14 +533,14 @@ class Connection(api.Connection):
     def get_nodepool_list(self, context, filters=None, limit=None, marker=None,
                      sort_key=None, sort_dir=None):
         query = model_query(models.NodePool)
-        # query = self._add_tenant_filters(context, query)
-        query = self._add_nodepool_filters(query, filters)
+        query = self._add_tenant_filters(context, query)
+        # query = self._add_nodepool_filters(query, filters)
         return _paginate_query(models.NodePool, limit, marker,
                                sort_key, sort_dir, query)
 
     def get_nodepool_by_id(self, context, nodepool_id):
         query = model_query(models.NodePool)
-        # query = self._add_tenant_filters(context, query)
+        query = self._add_tenant_filters(context, query)
         query = query.filter_by(id=nodepool_id)
         try:
             return query.one()

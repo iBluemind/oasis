@@ -54,56 +54,22 @@ class HttpApi(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDict
             raise exception.InvalidIdentity(identity=httpapi_id)
 
     @base.remotable_classmethod
-    def get_by_id(cls, context, httpapi_id):
+    def get_by_id(cls, context, endpoint_id):
         """Find a httpapi based on its integer id and return a Function object.
 
-        :param httpapi_id: the id of a httpapi.
+        :param httpapi_id: the id of a endpoint.
         :param context: Security context
-        :returns: a :class:`Function` object.
+        :returns: a :class:`HttpAPi` object.
         """
-        db_httpapi = cls.dbapi.get_httpapi_by_id(context, httpapi_id)
-        httpapi = HttpApi._from_db_object(cls(context), db_httpapi)
-        return httpapi
+
+        db_httpapis = cls.dbapi.get_httpapi_by_id(context, endpoint_id)
+        # httpapi = HttpApi._from_db_object(cls(context), db_httpapi)
+        return HttpApi._from_db_object_list(db_httpapis, cls, context)
+        # return httpapi
 
     @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find a httpapi based on uuid and return a :class:`Function` object.
-
-        :param uuid: the uuid of a httpapi.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_httpapi = cls.dbapi.get_httpapi_by_uuid(context, uuid)
-        httpapi = HttpApi._from_db_object(cls(context), db_httpapi)
-        return httpapi
-
-    @base.remotable_classmethod
-    def get_by_name(cls, context, name):
-        """Find a httpapi based on name and return a HttpApi object.
-
-        :param name: the logical name of a httpapi.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_httpapi = cls.dbapi.get_httpapi_by_name(context, name)
-        httpapi = HttpApi._from_db_object(cls(context), db_httpapi)
-        return httpapi
-
-    @base.remotable_classmethod
-    def get_by_id(cls, context, httpapi_id):
-        """Find a httpapi based on its integer id and return a HttpApi object.
-
-        :param httpapi_id: the id of a httpapi.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_httpapi = cls.dbapi.get_httpapi_by_id(context, httpapi_id)
-        httpapi = HttpApi._from_db_object(cls(context), db_httpapi)
-        return httpapi
-
-    @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
-        """Find a httpapi based on uuid and return a :class:`HttpApi` object.
 
         :param uuid: the uuid of a httpapi.
         :param context: Security context
@@ -139,10 +105,10 @@ class HttpApi(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDict
         """
 
         db_httpapis = cls.dbapi.get_httpapi_list(context, limit=limit,
-                                         marker=marker,
-                                         sort_key=sort_key,
-                                         sort_dir=sort_dir,
-                                         filters=filters)
+                                                 marker=marker,
+                                                 sort_key=sort_key,
+                                                 sort_dir=sort_dir,
+                                                 filters=filters)
         return HttpApi._from_db_object_list(db_httpapis, cls, context)
 
     @base.remotable

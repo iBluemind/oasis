@@ -50,6 +50,12 @@ class NodePoolPolicy(base.APIBase):
 
     name = wtypes.text
 
+    project_id = wsme.wsattr(wtypes.text, readonly=True)
+    """Stack id of the heat stack"""
+
+    user_id = wsme.wsattr(wtypes.text, readonly=True)
+    """Stack id of the heat stack"""
+
     min_size = wtypes.IntegerType(minimum=1)
 
     max_size = wtypes.IntegerType(minimum=1)
@@ -246,8 +252,8 @@ class NodePoolPoliciesController(rest.RestController):
                        action='nodepool_policy:create')
         nodepool_policy_dict = nodepool_policy.as_dict()
 
-        print nodepool_policy
-        print nodepool_policy_dict
+        nodepool_policy_dict['project_id'] = context.project_id
+        nodepool_policy_dict['user_id'] = context.user_id
 
         nodepool_policy = objects.NodePoolPolicy(context, **nodepool_policy_dict)
         nodepool_policy.create()
@@ -266,10 +272,10 @@ class NodePoolPoliciesController(rest.RestController):
     @wsme.validate(types.uuid, [NodePoolPolicyPatchType])
     @expose.expose(NodePoolPolicy, types.uuid_or_name, body=[NodePoolPolicyPatchType])
     def patch(self, nodepool_policy_ident, patch):
-        """Update an existing bay.
+        """Update an existing policy.
 
-        :param bay_ident: UUID or logical name of a bay.
-        :param patch: a json PATCH document to apply to this bay.
+        :param bay_ident: UUID or logical name of a policy.
+        :param patch: a json PATCH document to apply to this policy.
         """
         context = pecan.request.context
         nodepool_policy = api_utils.get_resource('NodePoolPolicy', nodepool_policy_ident)
@@ -278,7 +284,10 @@ class NodePoolPoliciesController(rest.RestController):
         #                action='nodepool_policy:update')
         try:
             nodepool_policy_dict = nodepool_policy.as_dict()
+            print 'ssssss'
+            print patch
             new_nodepool_policy = NodePoolPolicy(**api_utils.apply_jsonpatch(nodepool_policy_dict, patch))
+
         except api_utils.JSONPATCH_EXCEPTIONS as e:
             raise exception.PatchError(patch=patch, reason=e)
 

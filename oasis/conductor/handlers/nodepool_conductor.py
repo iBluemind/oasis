@@ -31,7 +31,7 @@ from oasis.i18n import _LI
 from oasis import objects
 from oasis.objects.fields import NodePoolStatus as nodepool_status
 from oasis.conductor.template_definition import TemplateDefinition as TDef
-
+from oasis.conductor import utils as conductor_utils
 
 oasis_heat_opts = [
     cfg.IntOpt('max_attempts',
@@ -61,7 +61,13 @@ LOG = logging.getLogger(__name__)
 
 def _extract_template_definition(context, nodepool):
     definition = TDef.get_template_definition()
-    return definition.extract_definition(context, nodepool)
+    # baymodel = conductor_utils.retrieve_baymodel(context, bay)
+    print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+    print nodepool
+    print nodepool.name
+    print nodepool.nodepool_policy_id
+    nodepool_policy = conductor_utils.retrieve_nodepool_policy(context, nodepool)
+    return definition.extract_definition(context, nodepool, nodepool_policy)
 
 
 def _create_stack(context, osc, nodepool, nodepool_create_timeout):
@@ -69,7 +75,7 @@ def _create_stack(context, osc, nodepool, nodepool_create_timeout):
 
     tpl_files, template = template_utils.get_template_contents(template_path)
     # Make sure no duplicate stack name
-    stack_name = '%s-%s' % (nodepool.name, short_id.generate_id())
+    stack_name = '%s_%s' % (nodepool.name, short_id.generate_id())
     if nodepool_create_timeout:
         heat_timeout = nodepool_create_timeout
     elif nodepool_create_timeout == 0:
@@ -139,12 +145,12 @@ class Handler(object):
                                           nodepool_create_timeout)
         except Exception:
             raise
-
+        # nodepool.user_id = context.user_id
         nodepool.stack_id = created_stack['stack']['id']
         nodepool.status = nodepool_status.CREATE_IN_PROGRESS
         nodepool.create()
 
-        self._poll_and_check(osc, nodepool)
+        # self._poll_and_check(osc, nodepool)
         return nodepool
 
     def nodepool_update(self, context, nodepool):
@@ -207,13 +213,13 @@ class Handler(object):
         except Exception:
             raise
 
-        self._poll_and_check(osc, nodepool)
+        # self._poll_and_check(osc, nodepool)
         return None
 
-    def _poll_and_check(self, osc, bay):
-        poller = HeatPoller(osc, bay)
-        lc = loopingcall.FixedIntervalLoopingCall(f=poller.poll_and_check)
-        lc.start(cfg.CONF.bay_heat.wait_interval, True)
+    # def _poll_and_check(self, osc, bay):
+        # poller = HeatPoller(osc, bay)
+        # lc = loopingcall.FixedIntervalLoopingCall(f=poller.poll_and_check)
+        # lc.start(cfg.CONF.bay_heat.wait_interval, True)
 
 
 class HeatPoller(object):

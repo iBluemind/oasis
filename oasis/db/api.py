@@ -82,6 +82,10 @@ class Connection(object):
         """
 
     @abc.abstractmethod
+    def get_httpapi_by_id(self, context, httpapi_id):
+        """Return a httpapi."""
+
+    @abc.abstractmethod
     def create_httpapi(self, values):
         """Create a new httpapi."""
 
@@ -215,12 +219,15 @@ class Connection(object):
         """Return a policy."""
 
     @abc.abstractmethod
+    def get_nodepool_policy_by_name(self, context, policy_name):
+        """Return a policy."""
+
+    @abc.abstractmethod
     def get_nodepool_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
         """Get matching Nodepools"""
 
-    @abc.abstractmethod
-    def get_nodepool_by_id(self, context, function_id):
+    def get_nodepool_by_id(self, context, nodepool_id):
         """Return a nodepool."""
 
     @abc.abstractmethod
