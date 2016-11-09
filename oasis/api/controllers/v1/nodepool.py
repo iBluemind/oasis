@@ -240,7 +240,7 @@ class NodePoolsController(rest.RestController):
         nodepool = objects.NodePool(context, **nodepool_dict)
         # nodepool.create()
 
-        pecan.request.rpcapi.nodepool_create(nodepool, nodepool_create_timeout=30000)
+        pecan.request.conductor_rpcapi.nodepool_create(nodepool, nodepool_create_timeout=30000)
 
         # Set the HTTP Location Header
         # pecan.response.location = link.build_url('nodepools', nodepool.id)
