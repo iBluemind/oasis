@@ -30,7 +30,7 @@ set +o xtrace
 # --------
 
 # Set up default directories
-OASIS_REPO=${OASIS_REPO:-${GIT_BASE}/openstack/oasis.git}
+OASIS_REPO=${OASIS_REPO:-https://github.com/samgoon/oasis.git}
 OASIS_BRANCH=${OASIS_BRANCH:-master}
 OASIS_DIR=$DEST/oasis
 

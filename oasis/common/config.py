@@ -17,18 +17,15 @@
 
 from oslo_config import cfg
 from oslo_middleware import cors
-
 from oasis.common import rpc
-from oasis import version
 
 
 def parse_args(argv, default_config_files=None):
     rpc.set_defaults(control_exchange='oasis')
     cfg.CONF(argv[1:],
              project='oasis',
-             version=version.version_info.release_string(),
              default_config_files=default_config_files)
-    # rpc.init(cfg.CONF)
+    rpc.init(cfg.CONF)
 
 
 def set_config_defaults():

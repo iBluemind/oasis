@@ -29,11 +29,7 @@ LOG = logging.getLogger(__name__)
 
 
 def main():
-
-    temp = ["/etc/oasis/oasis.conf", ]
-    service.prepare_service(temp)
-
-    # service.prepare_service(sys.argv)
+    service.prepare_service(sys.argv)
     app = api_app.load_app()
 
     # Create the WSGI server and start it

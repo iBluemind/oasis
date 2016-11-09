@@ -33,7 +33,6 @@ from oasis.common import config
 
 
 def table_args():
-    config.parse_args(["/etc/oasis/oasis.conf",])
     engine_name = urlparse.urlparse(cfg.CONF.database.connection).scheme
     if engine_name == 'mysql':
         return {'mysql_engine': cfg.CONF.database.mysql_engine,

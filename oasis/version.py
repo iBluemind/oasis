@@ -10,8 +10,4 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import pbr.version
-
-
-version_info = pbr.version.VersionInfo('oasis')
-version_string = version_info.version_string
+version = "0.0.1"

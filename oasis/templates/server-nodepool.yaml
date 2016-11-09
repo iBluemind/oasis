@@ -95,7 +95,6 @@ parameters:
     default: 10
     description: ASG scaledown_threshold
 
-
 resources:
   pool:
     type: OS::Neutron::LBaaS::Pool
