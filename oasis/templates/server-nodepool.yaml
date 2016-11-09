@@ -120,6 +120,10 @@ resources:
                 OASIS_AGENT_CONF_DIR=/etc/oasis-agent
                 OASIS_AGENT_CONF=$OASIS_AGENT_CONF_DIR/oasis-agent.conf
 
+                echo "[agent]" >> $OASIS_AGENT_CONF
+                echo "topic = $NODEPOOL_ID" >> $OASIS_AGENT_CONF
+                echo >> $OASIS_AGENT_CONF
+
                 echo "[oslo_messaging_rabbit]" >> $OASIS_AGENT_CONF
                 echo "rabbit_host = $RABBIT_HOST" >> $OASIS_AGENT_CONF
                 echo "rabbit_password = $RABBIT_PASSWORD" >> $OASIS_AGENT_CONF
