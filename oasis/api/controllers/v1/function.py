@@ -275,7 +275,7 @@ class FunctionsController(rest.RestController):
 
         function.create()
 
-        pecan.request.rpcapi.function_create(function, function_create_timeout=1000)
+        pecan.request.agent_rpcapi.function_create(function, function_create_timeout=1000)
 
         # Set the HTTP Location Header
         # pecan.response.location = link.build_url('functions',
