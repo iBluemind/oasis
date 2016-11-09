@@ -16,7 +16,7 @@ parameters:
   image:
     type: string
     description: Image used for servers
-    default: oasis5
+    default: ubuntu-oasis
     constraints:
     - custom_constraint: glance.image
   lb_port:
