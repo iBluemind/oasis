@@ -275,7 +275,10 @@ class FunctionsController(rest.RestController):
 
         function.create()
 
-        pecan.request.agent_rpcapi.function_create(function, function_create_timeout=1000)
+        # have to add function_id, rule, httpapi header(methods)
+        pecan.request.agent_rpcapi.function_create(function_dict['nodepool_id'], function_id, rule, function_dict['body'], methods)
+        #test: pecan.request.agent_rpcapi.function_create("1234", "1111222", "/ddd", function_dict['body'], ["GET", ])
+
 
         # Set the HTTP Location Header
         # pecan.response.location = link.build_url('functions',

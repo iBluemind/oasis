@@ -91,25 +91,36 @@ class Service(service.Service):
 class API(object):
     def __init__(self, transport=None, topic=None, server=None,
                  timeout=None):
-        serializer = rpc.RequestContextSerializer(
+        self.transport = transport
+        self.topic = topic
+        self.server = server
+        self.timeout = timeout
+
+        self.serializer = rpc.RequestContextSerializer(
             objects_base.OasisObjectSerializer())
-        if transport is None:
+        if self.transport is None:
             exmods = rpc.get_allowed_exmods()
-            transport = messaging.get_transport(cfg.CONF,
+            self.transport = messaging.get_transport(cfg.CONF,
                                                 allowed_remote_exmods=exmods,
                                                 aliases=TRANSPORT_ALIASES)
-        if topic is None:
-            topic = ''
-        target = messaging.Target(topic=topic, server=server)
-        self._client = messaging.RPCClient(transport, target,
-                                           serializer=serializer,
-                                           timeout=timeout)
+        if self.topic is None:
+            self.topic = ''
+        target = messaging.Target(topic=self.topic, server=self.server)
+        self._client = messaging.RPCClient(self.transport, target,
+                                           serializer=self.serializer,
+                                           timeout=self.timeout)
 
     def _call(self, method, context, *args, **kwargs):
         return self._client.call(context, method, *args, **kwargs)
 
     def _cast(self, method, context, *args, **kwargs):
         self._client.cast(context, method, *args, **kwargs)
+
+    def change_client(self, topic):
+        target = messaging.Target(topic=topic, server=self.server)
+        self._client = messaging.RPCClient(self.transport, target,
+                                           serializer=self.serializer,
+                                           timeout=self.timeout)
 
     def echo(self, message):
         self._cast('echo', message=message)
