@@ -1,19 +1,15 @@
-from oslo_utils import timeutils
 import pecan
 from pecan import rest
-import wsme
-from wsme import types as wtypes
 
+from wsme import types as wtypes
 from oasis.api.controllers import base
 from oasis.api.controllers import link
 from oasis.api.controllers.v1 import collection
 from oasis.api.controllers.v1 import types
 from oasis.api import expose
 from oasis.api import utils as api_utils
-from oasis.common import exception
 from oasis.common import policy
 from oasis import objects
-from oasis.objects import fields
 
 
 class HttpApiPatchType(types.JsonPatchType):
@@ -117,31 +113,11 @@ class HttpApisController(rest.RestController):
                                         sort_dir,
                                         filters=filters)
 
-        print 'ssss'
-        print httpapis
-        print 'ssss'
-
         return HttpApiCollection.convert_with_links(httpapis, limit,
                                                      url=resource_url,
                                                      expand=expand,
                                                      sort_key=sort_key,
                                                      sort_dir=sort_dir)
-
-    # @expose.expose(HttpApiCollection, types.uuid, int, wtypes.text,
-    #                wtypes.text, types.uuid)
-    # def get_all(self, marker=None, limit=None, sort_key='id',
-    #             sort_dir='asc', endpoint_id=None):
-    #     """Retrieve a list of httpapis.
-    #
-    #     :param marker: pagination marker for large data sets.
-    #     :param limit: maximum number of resources to return in a single result.
-    #     :param sort_key: column to sort results by. Default: id.
-    #     :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
-    #     """
-    #     context = pecan.request.context
-    #     policy.enforce(context, 'httpapi:get_all',
-    #                    action='httpapi:get_all')
-    #     return self._get_httpapis_collection(marker, limit, sort_key, sort_dir, endpoint_id)
 
     @expose.expose(HttpApi, body=HttpApi, status_code=201)
     def post(self, httpapi):
@@ -182,3 +158,12 @@ class HttpApisController(rest.RestController):
 
         return self._get_httpapis_collection(marker=None, limit=None, sort_key='id',
                                              sort_dir='asc', endpoint_id=endpoint_ident)
+
+    @expose.expose(None, types.uuid_or_name, status_code=204)
+    def delete(self, httpapi_ident):
+        """Delete a HttpApi.
+
+        :param httpapi_ident: ID of a httpapi
+        """
+        httpapi = api_utils.get_resource('HttpApi', httpapi_ident)
+        httpapi.destroy()

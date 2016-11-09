@@ -26,6 +26,8 @@ from oasis.db import api
 from oasis.db.sqlalchemy import models
 from oasis.i18n import _
 
+import pecan
+
 CONF = cfg.CONF
 
 
@@ -179,9 +181,6 @@ class Connection(api.Connection):
     def _add_httpapis_filters(self, query, filters):
         if filters is None:
             filters = {}
-        print 'hhhh'
-        print filters['endpoint_id']
-        print 'hhhh'
         query = query.filter_by(**{'endpoint_id': filters['endpoint_id']})
 
         return query
@@ -207,16 +206,26 @@ class Connection(api.Connection):
 
     def get_httpapi_by_id(self, context, endpoint_id):
         query = model_query(models.HttpApi)
-        query = query.filter_by(endpoint_id=endpoint_id)
+
         try:
-            return query.all()
+            if pecan.request.method == 'GET':
+                query = query.filter_by(endpoint_id=endpoint_id)
+                return query.all()
+            elif pecan.request.method == 'DELETE':
+                query = query.filter_by(id=endpoint_id)
+                return query.one()
         except MultipleResultsFound:
             raise exception.HttpApiAlreadyExists(httpapi=endpoint_id)
         except NoResultFound:
             raise exception.HttpApiNotFound(httpapi=endpoint_id)
 
-        # return _paginate_query(models.HttpApi, None, None,
-        #                        'id', 'asc', query)
+    def destroy_httpapi(self, httpapi_id):
+
+        session = get_session()
+        with session.begin():
+            query = model_query(models.HttpApi, session=session)
+            query = add_identity_filter(query, httpapi_id)
+            query.delete()
 
     def create_httpapi(self, values):
         # ensure defaults are present for new endpoint

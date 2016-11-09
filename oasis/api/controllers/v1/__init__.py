@@ -218,6 +218,11 @@ class Controller(rest.RestController):
                     'method': pecan.request.method,
                     'body': pecan.request.body})
             LOG.debug(msg)
+        else:
+            msg = ("Processing request: url: %(url)s, %(method)s, " %
+                   {'url': pecan.request.url,
+                    'method': pecan.request.method})
+            LOG.debug(msg)
 
         return super(Controller, self)._route(args)
 

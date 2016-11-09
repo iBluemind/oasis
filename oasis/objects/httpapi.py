@@ -2,6 +2,7 @@ from oasis.common import exception
 from oasis.common import utils
 from oasis.db import api as dbapi
 from oasis.objects import base
+import pecan
 
 from oslo_versionedobjects import fields
 
@@ -63,9 +64,11 @@ class HttpApi(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDict
         """
 
         db_httpapis = cls.dbapi.get_httpapi_by_id(context, endpoint_id)
-        # httpapi = HttpApi._from_db_object(cls(context), db_httpapi)
-        return HttpApi._from_db_object_list(db_httpapis, cls, context)
-        # return httpapi
+        if pecan.request.method == 'GET':
+            return HttpApi._from_db_object_list(db_httpapis, cls, context)
+        else :
+            httpapi = HttpApi._from_db_object(cls(context), db_httpapis)
+            return httpapi
 
     @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
@@ -126,3 +129,17 @@ class HttpApi(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDict
         values = self.obj_get_changes()
         db_httpapi = self.dbapi.create_httpapi(values)
         self._from_db_object(self, db_httpapi)
+
+    @base.remotable
+    def destroy(self, context=None):
+        """Delete the NodePool from the DB.
+
+        :param context: Security context. NOTE: This should only
+                        be used internally by the indirection_api.
+                        Unfortunately, RPC requires context as the first
+                        argument, even though we don't use it.
+                        A context should be set when instantiating the
+                        object, e.g.: NodePool(context)
+        """
+        self.dbapi.destroy_httpapi(self.id)
+        self.obj_reset_changes()

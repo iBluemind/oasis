@@ -119,10 +119,6 @@ class EndpointsController(rest.RestController):
                                           marker_obj, sort_key=sort_key,
                                           sort_dir=sort_dir)
 
-        print 'aaaa'
-        print endpoints
-        print 'aaaa'
-
         return EndpointCollection.convert_with_links(endpoints, limit,
                                                      url=resource_url,
                                                      expand=expand,

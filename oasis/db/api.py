@@ -86,6 +86,10 @@ class Connection(object):
         """Return a httpapi."""
 
     @abc.abstractmethod
+    def destroy_httpapi(self, id):
+        """Delete httpapi"""
+
+    @abc.abstractmethod
     def create_httpapi(self, values):
         """Create a new httpapi."""
 

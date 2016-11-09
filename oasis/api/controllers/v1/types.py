@@ -16,7 +16,7 @@
 from oslo_utils import strutils
 import wsme
 from wsme import types as wtypes
-
+import six
 from oasis.common import exception
 from oasis.common import utils
 from oasis.i18n import _
@@ -126,11 +126,24 @@ class MultiType(wtypes.UserType):
                 % {'type': self.types, 'value': type(value)})
 
 
+class JsonType(wtypes.UserType):
+    """A simple JSON type."""
+
+    basetype = wtypes.text
+    name = 'json'
+
+    def __str__(self):
+        # These are the json serializable native types
+        return ' | '.join(map(str, (wtypes.text, six.integer_types, float,
+                                    BooleanType, list, dict, None)))
+
+
 macaddress = MacAddressType()
 uuid = UuidType()
 name = NameType()
 uuid_or_name = MultiType(UuidType, NameType)
 boolean = BooleanType()
+json = JsonType()
 
 
 class JsonPatchType(wtypes.Base):
