@@ -19,9 +19,9 @@ from pkg_resources import iter_entry_points
 import requests
 import six
 
+from oasis.common import paths
 from oasis.common import clients
 from oasis.common import exception
-from oasis.common import paths
 from oasis.i18n import _
 from oasis.i18n import _LW
 
@@ -38,7 +38,7 @@ template_def_opts = [
                   'on Ubuntu.')),
 ]
 
-CONF.register_opts(template_def_opts)
+CONF.register_opts(template_def_opts, group='conductor')
 
 
 class ParameterMapping(object):

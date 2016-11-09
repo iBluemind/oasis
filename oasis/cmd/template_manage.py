@@ -102,7 +102,6 @@ class TemplateManager(app.App):
     def __init__(self):
         super(TemplateManager, self).__init__(
             description='Oasis Template Manager',
-            version=version.version_info,
             command_manager=TemplateCommandManager(None),
             deferred_help=True)
 

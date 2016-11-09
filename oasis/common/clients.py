@@ -90,6 +90,7 @@ cinder_client_opts = [
                       'communication with the OpenStack service.'))]
 
 
+# cfg.CONF.register_opts(oasis_client_opts, group='oasis_client')
 cfg.CONF.register_opts(heat_client_opts, group='heat_client')
 cfg.CONF.register_opts(glance_client_opts, group='glance_client')
 cfg.CONF.register_opts(nova_client_opts, group='nova_client')
