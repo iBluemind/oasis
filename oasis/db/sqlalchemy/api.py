@@ -258,13 +258,13 @@ class Connection(api.Connection):
 
     def get_request_by_id(self, context, httpapi_id):
         query = model_query(models.Request)
-
         try:
-            if pecan.request.method == 'GET':
-                query = query.filter_by(http_api_id=httpapi_id)
+            if pecan.request.method == 'DELETE':
+                query = query.filter_by(id=httpapi_id)
+
                 return query.one()
-            elif pecan.request.method == 'DELETE':
-                query = query.filter_by(id=id)
+            else:
+                query = query.filter_by(http_api_id=httpapi_id)
                 return query.one()
         except MultipleResultsFound:
             raise exception.HttpApiAlreadyExists(http_api_id=httpapi_id)
