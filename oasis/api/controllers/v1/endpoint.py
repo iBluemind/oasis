@@ -185,3 +185,18 @@ class EndpointsController(rest.RestController):
         #                action='endpoint:get')
 
         return Endpoint.convert_with_links(endpoint)
+
+    @expose.expose(None, types.uuid_or_name, status_code=204)
+    def delete(self, endpoint_ident):
+        """Delete a Endpoint.
+
+        :param endpoint_ident: Id of the endpoint.
+        """
+        context = pecan.request.context
+        endpoint = api_utils.get_resource('Endpoint', endpoint_ident)
+        # policy.enforce(context, 'endpoint:delete', endpoint,
+        #                action='endpoint:delete')
+        endpoint.destroy()
+        # pecan.request.agent_rpcapi.function_delete(function)
+
+

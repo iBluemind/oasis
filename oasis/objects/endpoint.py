@@ -64,6 +64,7 @@ class Endpoint(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDic
         :param context: Security context
         :returns: a :class:`Function` object.
         """
+
         db_endpoint = cls.dbapi.get_endpoint_by_id(context, endpoint_id)
         endpoint = Endpoint._from_db_object(cls(context), db_endpoint)
         return endpoint
@@ -71,42 +72,6 @@ class Endpoint(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDic
     @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find a endpoint based on uuid and return a :class:`Function` object.
-
-        :param uuid: the uuid of a endpoint.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_endpoint = cls.dbapi.get_endpoint_by_uuid(context, uuid)
-        endpoint = Endpoint._from_db_object(cls(context), db_endpoint)
-        return endpoint
-
-    @base.remotable_classmethod
-    def get_by_name(cls, context, name):
-        """Find a endpoint based on name and return a Endpoint object.
-
-        :param name: the logical name of a endpoint.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_endpoint = cls.dbapi.get_endpoint_by_name(context, name)
-        endpoint = Endpoint._from_db_object(cls(context), db_endpoint)
-        return endpoint
-
-    @base.remotable_classmethod
-    def get_by_id(cls, context, endpoint_id):
-        """Find a endpoint based on its integer id and return a Endpoint object.
-
-        :param endpoint_id: the id of a endpoint.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_endpoint = cls.dbapi.get_endpoint_by_id(context, endpoint_id)
-        endpoint = Endpoint._from_db_object(cls(context), db_endpoint)
-        return endpoint
-
-    @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
-        """Find a endpoint based on uuid and return a :class:`Endpoint` object.
 
         :param uuid: the uuid of a endpoint.
         :param context: Security context
@@ -163,3 +128,17 @@ class Endpoint(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDic
         values = self.obj_get_changes()
         db_endpoint = self.dbapi.create_endpoint(values)
         self._from_db_object(self, db_endpoint)
+
+    @base.remotable
+    def destroy(self, context=None):
+        """Delete the Function from the DB.
+
+        :param context: Security context. NOTE: This should only
+                        be used internally by the indirection_api.
+                        Unfortunately, RPC requires context as the first
+                        argument, even though we don't use it.
+                        A context should be set when instantiating the
+                        object, e.g.: Function(context)
+        """
+        self.dbapi.destroy_endpoint(self.id)
+        self.obj_reset_changes()

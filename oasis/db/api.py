@@ -82,6 +82,10 @@ class Connection(object):
         :returns: A endpoint.
         """
 
+    @abc.abstractmethod
+    def destroy_endpoint(self, id):
+        """Delete endpoint policy"""
+
     ################ HttpApi APIs #################
     @abc.abstractmethod
     def get_httpapi_by_id(self, context, httpapi_id):

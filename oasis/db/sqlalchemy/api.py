@@ -179,17 +179,14 @@ class Connection(api.Connection):
         except NoResultFound:
             raise exception.EndpointNotFound(function=endpoint_name)
 
-    def get_nodepool_policy_by_name(self, context, policy_name):
-        query = model_query(models.NodePoolPolicy)
-        query = self._add_tenant_filters(context, query)
-        query = query.filter_by(name=policy_name)
-        try:
-            return query.one()
-        except MultipleResultsFound:
-            raise exception.Conflict('Multiple policy exist with same name.'
-                                     ' Please use the endpoint uuid instead.')
-        except NoResultFound:
-            raise exception.NodePoolPolicyNotFound(function=policy_name)
+    def destroy_endpoint(self, id):
+        """Delete endpoint policy"""
+        session = get_session()
+        with session.begin():
+            query = model_query(models.Endpoint, session=session)
+            query = add_identity_filter(query, id)
+            query.delete()
+
 
 ############## HttpApis APIs #############
     def _add_httpapis_filters(self, query, filters):
@@ -419,15 +416,6 @@ class Connection(api.Connection):
                                      ' Please use the function uuid instead.')
         except NoResultFound:
             raise exception.FunctionNotFound(function=function_name)
-
-    def get_function_by_uuid(self, context, function_uuid):
-        query = model_query(models.Function)
-        # query = self._add_tenant_filters(context, query)
-        query = query.filter_by(uuid=function_uuid)
-        try:
-            return query.one()
-        except NoResultFound:
-            raise exception.FunctionNotFound(function=function_uuid)
 
     def destroy_function(self, function_id):
         def destroy_function_resources(session, function_id):
