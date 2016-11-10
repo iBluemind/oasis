@@ -184,8 +184,6 @@ class NodePoolsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'nodepool:get_all',
-                       action='nodepool:get_all')
         return self._get_nodepools_collection(marker, limit, sort_key,
                                          sort_dir)
 
@@ -201,8 +199,6 @@ class NodePoolsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'nodepool:detail',
-                       action='nodepool:detail')
 
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
@@ -231,8 +227,6 @@ class NodePoolsController(rest.RestController):
         :param nodepool: a nodepool within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'nodepool:create',
-                       action='nodepool:create')
         nodepool_dict = nodepool.as_dict()
         nodepool_dict['project_id'] = context.project_id
         nodepool_dict['user_id'] = context.user_id

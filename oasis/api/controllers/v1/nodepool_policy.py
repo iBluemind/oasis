@@ -212,8 +212,6 @@ class NodePoolPoliciesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'nodepool_policy:detail',
-                       action='nodepool_policy:detail')
 
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
