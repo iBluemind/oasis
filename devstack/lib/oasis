@@ -223,7 +223,7 @@ function init_oasis {
         recreate_database oasis
 
         # Migrate oasis database
-        $OASIS_BIN_DIR/oasis-db-manage upgrade
+        $OASIS_BIN_DIR/oasis-db-manage upgrade head
     fi
     create_oasis_cache_dir
 }
