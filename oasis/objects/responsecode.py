@@ -55,42 +55,6 @@ class ResponseCode(base.OasisPersistentObject, base.OasisObject, base.OasisObjec
 
     @base.remotable_classmethod
     def get_by_id(cls, context, responsecode_id):
-        """Find a responsecode based on its integer id and return a Function object.
-
-        :param responsecode_id: the id of a responsecode.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_responsecode = cls.dbapi.get_responsecode_by_id(context, responsecode_id)
-        responsecode = ResponseCode._from_db_object(cls(context), db_responsecode)
-        return responsecode
-
-    @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
-        """Find a responsecode based on uuid and return a :class:`Function` object.
-
-        :param uuid: the uuid of a responsecode.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_responsecode = cls.dbapi.get_responsecode_by_uuid(context, uuid)
-        responsecode = ResponseCode._from_db_object(cls(context), db_responsecode)
-        return responsecode
-
-    @base.remotable_classmethod
-    def get_by_name(cls, context, name):
-        """Find a responsecode based on name and return a ResponseCode object.
-
-        :param name: the logical name of a responsecode.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_responsecode = cls.dbapi.get_responsecode_by_name(context, name)
-        responsecode = ResponseCode._from_db_object(cls(context), db_responsecode)
-        return responsecode
-
-    @base.remotable_classmethod
-    def get_by_id(cls, context, responsecode_id):
         """Find a responsecode based on its integer id and return a ResponseCode object.
 
         :param responsecode_id: the id of a responsecode.

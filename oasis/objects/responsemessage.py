@@ -55,42 +55,6 @@ class ResponseMessage(base.OasisPersistentObject, base.OasisObject, base.OasisOb
 
     @base.remotable_classmethod
     def get_by_id(cls, context, responsemessage_id):
-        """Find a responsemessage based on its integer id and return a Function object.
-
-        :param responsemessage_id: the id of a responsemessage.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_responsemessage = cls.dbapi.get_responsemessage_by_id(context, responsemessage_id)
-        responsemessage = ResponseMessage._from_db_object(cls(context), db_responsemessage)
-        return responsemessage
-
-    @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
-        """Find a responsemessage based on uuid and return a :class:`Function` object.
-
-        :param uuid: the uuid of a responsemessage.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_responsemessage = cls.dbapi.get_responsemessage_by_uuid(context, uuid)
-        responsemessage = ResponseMessage._from_db_object(cls(context), db_responsemessage)
-        return responsemessage
-
-    @base.remotable_classmethod
-    def get_by_name(cls, context, name):
-        """Find a responsemessage based on name and return a ResponseMessage object.
-
-        :param name: the logical name of a responsemessage.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_responsemessage = cls.dbapi.get_responsemessage_by_name(context, name)
-        responsemessage = ResponseMessage._from_db_object(cls(context), db_responsemessage)
-        return responsemessage
-
-    @base.remotable_classmethod
-    def get_by_id(cls, context, responsemessage_id):
         """Find a responsemessage based on its integer id and return a ResponseMessage object.
 
         :param responsemessage_id: the id of a responsemessage.

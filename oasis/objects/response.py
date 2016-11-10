@@ -89,42 +89,6 @@ class Response(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDic
         return response
 
     @base.remotable_classmethod
-    def get_by_id(cls, context, response_id):
-        """Find a response based on its integer id and return a Response object.
-
-        :param response_id: the id of a response.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_response = cls.dbapi.get_response_by_id(context, response_id)
-        response = Response._from_db_object(cls(context), db_response)
-        return response
-
-    @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
-        """Find a response based on uuid and return a :class:`Response` object.
-
-        :param uuid: the uuid of a response.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_response = cls.dbapi.get_response_by_uuid(context, uuid)
-        response = Response._from_db_object(cls(context), db_response)
-        return response
-
-    @base.remotable_classmethod
-    def get_by_name(cls, context, name):
-        """Find a response based on name and return a Response object.
-
-        :param name: the logical name of a response.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_response = cls.dbapi.get_response_by_name(context, name)
-        response = Response._from_db_object(cls(context), db_response)
-        return response
-
-    @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None,
              sort_key=None, sort_dir=None, filters=None):
         """Return a list of Response objects.
