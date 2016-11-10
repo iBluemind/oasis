@@ -274,35 +274,28 @@ class FunctionsController(rest.RestController):
         function = objects.Function(context, **function_dict)
         function.create()
 
-        # endpoint = api_utils.get_resource('Endpoint', function_dict.get('endpoint_id'))
-        # httpapis_filters = {'endpoint_id': endpoint.id}
-        # httpapis = objects.HttpApi.list(context, filters=httpapis_filters)
-        # httpapi_methods = []
-        # httpapi_ids = []
-        #
-        # for i, c in enumerate(httpapis):
-        #
-        #     httpapi_methods.append(c.method)
-        #     httpapi_ids.append(c.id)
-        #
-        # request = api_utils.get_resource('Request', httpapi_ids[0])
-        # filters = {'request_id': request.id}
-        # request_headers = objects.RequestHeader.list(context, filters=filters)
-        #
-        # for i, c in enumerate(request_headers):
-        #     request_headers[i].value = c.value
-        #     request_headers[i].name = c.name
-        #     request_headers[i].id = c.id
-        #
-        # print 'aaaaaa'
-        # print function_dict['nodepool_id'] +', ' + function.id + ', ' +  '/' + endpoint.url + ',' + function_dict['body']
-        # print httpapi_methods
-        # print httpapi_ids
-        # print request_headers[0].id
-        # print 'aaaaaa'
+        endpoint = api_utils.get_resource('Endpoint', function_dict.get('endpoint_id'))
+        httpapis_filters = {'endpoint_id': endpoint.id}
+        httpapis = objects.HttpApi.list(context, filters=httpapis_filters)
+        httpapi_methods = []
+        httpapi_ids = []
+
+        for i, c in enumerate(httpapis):
+
+            httpapi_methods.append(c.method)
+            httpapi_ids.append(c.id)
+
+        request = api_utils.get_resource('Request', httpapi_ids[0])
+        filters = {'request_id': request.id}
+        request_headers = objects.RequestHeader.list(context, filters=filters)
+
+        for i, c in enumerate(request_headers):
+            request_headers[i].value = c.value
+            request_headers[i].name = c.name
+            request_headers[i].id = c.id
 
         # have to add function_id, rule, httpapi header(methods)
-        # pecan.request.agent_rpcapi.function_create(function_dict['nodepool_id'], function.id, '/' + endpoint.url, function_dict['body'], httpapi_methods)
+        pecan.request.agent_rpcapi.function_create(function_dict['nodepool_id'], function.id, '/' + endpoint.url, function_dict['body'], httpapi_methods)
         #test: pecan.request.agent_rpcapi.function_create("1234", "1111222", "/ddd", function_dict['body'], ["GET", ])
 
 
