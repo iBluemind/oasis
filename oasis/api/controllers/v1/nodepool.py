@@ -263,8 +263,6 @@ class NodePoolsController(rest.RestController):
         """
         context = pecan.request.context
         nodepool = api_utils.get_resource('NodePool', nodepool_ident)
-        # policy.enforce(context, 'nodepool:update', nodepool,
-        #                action='nodepool:update')
         try:
             nodepool_dict = nodepool.as_dict()
             nodepool_dict['project_id'] = context.project_id
@@ -302,8 +300,6 @@ class NodePoolsController(rest.RestController):
         """
         context = pecan.request.context
         nodepool = api_utils.get_resource('NodePool', nodepool_ident)
-        # policy.enforce(context, 'nodepool:delete', nodepool,
-        #                action='nodepool:delete')
 
         # pecan.request.conductor_rpcapi.function_delete(nodepool)
         nodepool.destroy()

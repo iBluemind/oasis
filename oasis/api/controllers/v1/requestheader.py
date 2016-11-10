@@ -132,8 +132,6 @@ class RequestHeadersController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'requestheader:get_all',
-                       action='requestheader:get_all')
         return self._get_requestheaders_collection(marker, limit, sort_key, sort_dir)
 
     @expose.expose(RequestHeader, body=RequestHeader, status_code=201)
@@ -143,8 +141,6 @@ class RequestHeadersController(rest.RestController):
         :param requestheader: a requestheader within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'requestheader:create',
-                       action='requestheader:create')
         requestheader_dict = requestheader.as_dict()
 
         if requestheader_dict.get('name') is None:

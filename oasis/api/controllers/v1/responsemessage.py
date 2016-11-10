@@ -127,8 +127,6 @@ class ResponseMessagesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'responsemessage:get_all',
-                       action='responsemessage:get_all')
         return self._get_responsemessages_collection(marker, limit, sort_key, sort_dir)
 
     @expose.expose(ResponseMessage, body=ResponseMessage, status_message=201)
@@ -138,8 +136,6 @@ class ResponseMessagesController(rest.RestController):
         :param responsemessage: a responsemessage within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'responsemessage:create',
-                       action='responsemessage:create')
         responsemessage_dict = responsemessage.as_dict()
 
         if responsemessage_dict.get('message') is None:

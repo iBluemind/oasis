@@ -197,8 +197,6 @@ class NodePoolPoliciesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'nodepool_policy:get_all',
-                       action='nodepool_policy:get_all')
         return self._get_nodepool_policies_collection(marker, limit, sort_key,
                                          sort_dir)
 
@@ -248,8 +246,6 @@ class NodePoolPoliciesController(rest.RestController):
         :param nodepool_policy: a nodepool_policy within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'nodepool_policy:create',
-                       action='nodepool_policy:create')
         nodepool_policy_dict = nodepool_policy.as_dict()
 
         nodepool_policy_dict['project_id'] = context.project_id

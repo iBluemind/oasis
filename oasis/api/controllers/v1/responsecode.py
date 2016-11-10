@@ -127,8 +127,6 @@ class ResponseCodesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'responsecode:get_all',
-                       action='responsecode:get_all')
         return self._get_responsecodes_collection(marker, limit, sort_key, sort_dir)
 
     @expose.expose(ResponseCode, body=ResponseCode, status_code=201)
@@ -138,8 +136,6 @@ class ResponseCodesController(rest.RestController):
         :param responsecode: a responsecode within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'responsecode:create',
-                       action='responsecode:create')
         responsecode_dict = responsecode.as_dict()
 
         if responsecode_dict.get('status_code') is None:

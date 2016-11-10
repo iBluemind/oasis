@@ -124,8 +124,6 @@ class RequestsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'request:get_all',
-                       action='request:get_all')
         return self._get_requests_collection(marker, limit, sort_key, sort_dir)
 
     @expose.expose(Request, body=Request, status_code=201)
@@ -135,8 +133,6 @@ class RequestsController(rest.RestController):
         :param request: a endpoint within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'request:create',
-                       action='request:create')
         request_dict = request.as_dict()
 
         if request_dict.get('http_api_id') is None:

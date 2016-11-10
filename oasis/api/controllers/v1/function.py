@@ -201,8 +201,6 @@ class FunctionsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'function:get_all',
-                       action='function:get_all')
         return self._get_functions_collection(marker, limit, sort_key,
                                          sort_dir)
 
@@ -218,8 +216,6 @@ class FunctionsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'function:detail',
-                       action='function:detail')
 
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
@@ -241,8 +237,6 @@ class FunctionsController(rest.RestController):
         context = pecan.request.context
 
         function = api_utils.get_resource('Function', function_ident)
-        policy.enforce(context, 'function:get', function,
-                       action='function:get')
 
         return Function.convert_with_links(function)
 
@@ -253,8 +247,6 @@ class FunctionsController(rest.RestController):
         :param function: a function within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'function:create',
-                       action='function:create')
         function_dict = function.as_dict()
 
         function_dict['project_id'] = context.project_id
@@ -321,8 +313,6 @@ class FunctionsController(rest.RestController):
         context = pecan.request.context
         function = api_utils.get_resource('Function', function_ident)
 
-        # policy.enforce(context, 'function:update', function,
-        #                action='function:update')
         try:
             function_dict = function.as_dict()
             new_function = Function(**api_utils.apply_jsonpatch(function_dict, patch))
@@ -384,8 +374,6 @@ class FunctionsController(rest.RestController):
         """
         context = pecan.request.context
         function = api_utils.get_resource('Function', function_ident)
-        policy.enforce(context, 'function:delete', function,
-                       action='function:delete')
         function.destroy()
         pecan.request.agent_rpcapi.function_delete(function.nodepool_id, function_ident)
 

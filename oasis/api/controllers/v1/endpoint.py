@@ -137,8 +137,6 @@ class EndpointsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'endpoint:get_all',
-                       action='endpoint:get_all')
         return self._get_endpoints_collection(marker, limit, sort_key, sort_dir)
 
     @expose.expose(Endpoint, body=Endpoint, status_code=201)
@@ -148,8 +146,6 @@ class EndpointsController(rest.RestController):
         :param endpoint: a endpoint within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'endpoint:create',
-                       action='endpoint:create')
         endpoint_dict = endpoint.as_dict()
 
         endpoint_dict['project_id'] = context.project_id
@@ -181,9 +177,6 @@ class EndpointsController(rest.RestController):
         """
         context = pecan.request.context
         endpoint = api_utils.get_resource('Endpoint', endpoint_ident)
-        # policy.enforce(context, 'endpoint:get', function,
-        #                action='endpoint:get')
-
         return Endpoint.convert_with_links(endpoint)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
@@ -194,8 +187,6 @@ class EndpointsController(rest.RestController):
         """
         context = pecan.request.context
         endpoint = api_utils.get_resource('Endpoint', endpoint_ident)
-        # policy.enforce(context, 'endpoint:delete', endpoint,
-        #                action='endpoint:delete')
         endpoint.destroy()
         # pecan.request.agent_rpcapi.function_delete(function)
 

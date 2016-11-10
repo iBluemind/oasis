@@ -126,8 +126,6 @@ class HttpApisController(rest.RestController):
         :param httpapi: a endpoint within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'httpapi:create',
-                       action='httpapi:create')
         httpapi_dict = httpapi.as_dict()
 
         httpapi_dict['project_id'] = context.project_id
