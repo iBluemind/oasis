@@ -54,42 +54,6 @@ class Request(base.OasisPersistentObject, base.OasisObject, base.OasisObjectDict
 
     @base.remotable_classmethod
     def get_by_id(cls, context, request_id):
-        """Find a request based on its integer id and return a Function object.
-
-        :param request_id: the id of a request.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_request = cls.dbapi.get_request_by_id(context, request_id)
-        request = Request._from_db_object(cls(context), db_request)
-        return request
-
-    @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
-        """Find a request based on uuid and return a :class:`Function` object.
-
-        :param uuid: the uuid of a request.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_request = cls.dbapi.get_request_by_uuid(context, uuid)
-        request = Request._from_db_object(cls(context), db_request)
-        return request
-
-    @base.remotable_classmethod
-    def get_by_name(cls, context, name):
-        """Find a request based on name and return a Request object.
-
-        :param name: the logical name of a request.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_request = cls.dbapi.get_request_by_name(context, name)
-        request = Request._from_db_object(cls(context), db_request)
-        return request
-
-    @base.remotable_classmethod
-    def get_by_id(cls, context, request_id):
         """Find a request based on its integer id and return a Request object.
 
         :param request_id: the id of a request.

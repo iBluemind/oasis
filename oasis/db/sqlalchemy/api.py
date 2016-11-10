@@ -136,6 +136,7 @@ class Connection(api.Connection):
 
         return query
 
+################# EndPoint APIs ##################
     def get_endpoint_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
         query = model_query(models.Endpoint)
@@ -178,13 +179,6 @@ class Connection(api.Connection):
         except NoResultFound:
             raise exception.EndpointNotFound(function=endpoint_name)
 
-    def _add_httpapis_filters(self, query, filters):
-        if filters is None:
-            filters = {}
-        query = query.filter_by(**{'endpoint_id': filters['endpoint_id']})
-
-        return query
-
     def get_nodepool_policy_by_name(self, context, policy_name):
         query = model_query(models.NodePoolPolicy)
         query = self._add_tenant_filters(context, query)
@@ -196,6 +190,14 @@ class Connection(api.Connection):
                                      ' Please use the endpoint uuid instead.')
         except NoResultFound:
             raise exception.NodePoolPolicyNotFound(function=policy_name)
+
+############## HttpApis APIs #############
+    def _add_httpapis_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+        query = query.filter_by(**{'endpoint_id': filters['endpoint_id']})
+
+        return query
 
     def get_httpapi_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
@@ -240,6 +242,7 @@ class Connection(api.Connection):
             raise exception.HttpApiAlreadyExists(uuid=values['uuid'])
         return httpapi
 
+##############Request APIs #############
     def create_request(self, values):
         # ensure defaults are present for new endpoint
         if not values.get('id'):
@@ -252,6 +255,29 @@ class Connection(api.Connection):
         except db_exc.DBDuplicateEntry:
             raise exception.EndpointAlreadyExists(uuid=values['uuid'])
         return request
+
+    def get_request_by_id(self, context, httpapi_id):
+        query = model_query(models.Request)
+
+        try:
+            if pecan.request.method == 'GET':
+                query = query.filter_by(http_api_id=httpapi_id)
+                return query.one()
+            elif pecan.request.method == 'DELETE':
+                query = query.filter_by(id=id)
+                return query.one()
+        except MultipleResultsFound:
+            raise exception.HttpApiAlreadyExists(http_api_id=httpapi_id)
+        except NoResultFound:
+            raise exception.HttpApiNotFound(http_api_id=httpapi_id)
+
+################ Request Header APIs ###############
+    def _add_request_header_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+        query = query.filter_by(**{'request_id': filters['request_id']})
+
+        return query
 
     def create_request_header(self, values):
         # ensure defaults are present for new endpoint
@@ -266,9 +292,38 @@ class Connection(api.Connection):
             raise exception.EndpointAlreadyExists(uuid=values['uuid'])
         return request_header
 
+    def get_request_header_by_id(self, context, request_id):
+        """Return a httpapi."""
+        query = model_query(models.RequestHeader)
+
+        try:
+            if pecan.request.method == 'GET':
+                print 'ddddddd'
+                print request_id
+                print 'ddddddd'
+                query = query.filter_by(request_id=request_id)
+                return query.all()
+            elif pecan.request.method == 'DELETE':
+                query = query.filter_by(id=request_id)
+                return query.one()
+        except MultipleResultsFound:
+            raise exception.HttpApiAlreadyExists(request_id=request_id)
+        except NoResultFound:
+            raise exception.HttpApiNotFound(request_id=request_id)
+
+    def destroy_request_header(self, header_id):
+        """Delete request_header"""
+
+        session = get_session()
+        with session.begin():
+            query = model_query(models.RequestHeader, session=session)
+            query = add_identity_filter(query, header_id)
+            query.delete()
+
     def get_request_header_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
         query = model_query(models.RequestHeader)
+        query = self._add_request_header_filters(query, filters)
         return _paginate_query(models.RequestHeader, limit, marker,
                                sort_key, sort_dir, query)
 

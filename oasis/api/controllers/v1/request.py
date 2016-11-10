@@ -152,3 +152,22 @@ class RequestsController(rest.RestController):
         # pecan.response.location = link.build_url('functions',
         #                                          function.id)
         return Request.convert_with_links(request)
+
+    @expose.expose(Request, types.uuid_or_name)
+    def get_one(self, httpapi_ident):
+        """Retrieve information about the given function.
+
+        :param function_ident: UUID of a function or logical name of the function.
+        """
+        request = api_utils.get_resource('Request', httpapi_ident)
+
+        return Request.convert_with_links(request)
+
+    @expose.expose(None, types.uuid_or_name, status_code=204)
+    def delete(self, httpapi_ident):
+        """Delete a HttpApi.
+
+        :param httpapi_ident: ID of a httpapi
+        """
+        httpapi = api_utils.get_resource('Request', httpapi_ident)
+        httpapi.destroy()

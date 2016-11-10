@@ -3,6 +3,8 @@ from oasis.common import utils
 from oasis.db import api as dbapi
 from oasis.objects import base
 
+import pecan
+
 from oslo_versionedobjects import fields
 
 
@@ -56,51 +58,19 @@ class RequestHeader(base.OasisPersistentObject, base.OasisObject, base.OasisObje
 
     @base.remotable_classmethod
     def get_by_id(cls, context, requestheader_id):
-        """Find a requestheader based on its integer id and return a Function object.
-
-        :param requestheader_id: the id of a requestheader.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_requestheader = cls.dbapi.get_requestheader_by_id(context, requestheader_id)
-        requestheader = RequestHeader._from_db_object(cls(context), db_requestheader)
-        return requestheader
-
-    @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
-        """Find a requestheader based on uuid and return a :class:`Function` object.
-
-        :param uuid: the uuid of a requestheader.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_requestheader = cls.dbapi.get_requestheader_by_uuid(context, uuid)
-        requestheader = RequestHeader._from_db_object(cls(context), db_requestheader)
-        return requestheader
-
-    @base.remotable_classmethod
-    def get_by_name(cls, context, name):
-        """Find a requestheader based on name and return a RequestHeader object.
-
-        :param name: the logical name of a requestheader.
-        :param context: Security context
-        :returns: a :class:`Function` object.
-        """
-        db_requestheader = cls.dbapi.get_requestheader_by_name(context, name)
-        requestheader = RequestHeader._from_db_object(cls(context), db_requestheader)
-        return requestheader
-
-    @base.remotable_classmethod
-    def get_by_id(cls, context, requestheader_id):
         """Find a requestheader based on its integer id and return a RequestHeader object.
 
         :param requestheader_id: the id of a requestheader.
         :param context: Security context
         :returns: a :class:`Function` object.
         """
-        db_requestheader = cls.dbapi.get_requestheader_by_id(context, requestheader_id)
-        requestheader = RequestHeader._from_db_object(cls(context), db_requestheader)
-        return requestheader
+
+        db_requestheader = cls.dbapi.get_request_header_by_id(context, requestheader_id)
+        if pecan.request.method == 'GET':
+            return RequestHeader._from_db_object_list(requestheader_id, cls, context)
+        else:
+            requestheader = RequestHeader._from_db_object(cls(context), db_requestheader)
+            return requestheader
 
     @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
@@ -139,7 +109,7 @@ class RequestHeader(base.OasisPersistentObject, base.OasisObject, base.OasisObje
 
         """
 
-        db_requestheaders = cls.dbapi.get_requestheader_list(context, limit=limit,
+        db_requestheaders = cls.dbapi.get_request_header_list(context, limit=limit,
                                          marker=marker,
                                          sort_key=sort_key,
                                          sort_dir=sort_dir,
@@ -161,3 +131,17 @@ class RequestHeader(base.OasisPersistentObject, base.OasisObject, base.OasisObje
         values = self.obj_get_changes()
         db_requestheader = self.dbapi.create_request_header(values)
         self._from_db_object(self, db_requestheader)
+
+    @base.remotable
+    def destroy(self, context=None):
+        """Delete the NodePool from the DB.
+
+        :param context: Security context. NOTE: This should only
+                        be used internally by the indirection_api.
+                        Unfortunately, RPC requires context as the first
+                        argument, even though we don't use it.
+                        A context should be set when instantiating the
+                        object, e.g.: NodePool(context)
+        """
+        self.dbapi.destroy_request_header(self.id)
+        self.obj_reset_changes()

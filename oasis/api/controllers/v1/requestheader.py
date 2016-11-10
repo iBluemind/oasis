@@ -98,7 +98,7 @@ class RequestHeadersController(rest.RestController):
         super(RequestHeadersController, self).__init__()
 
     def _get_requestheaders_collection(self, marker, limit, sort_key,
-                                  sort_dir, expand=False, resource_url=None):
+                                  sort_dir, expand=False, resource_url=None, id=None):
 
         limit = api_utils.validate_limit(limit)
         sort_dir = api_utils.validate_sort_dir(sort_dir)
@@ -108,9 +108,11 @@ class RequestHeadersController(rest.RestController):
             marker_obj = objects.RequestHeader.get_by_id(pecan.request.context,
                                                     marker)
 
+        filters = {'request_id': id}
+
         requestheaders = objects.RequestHeader.list(pecan.request.context, limit,
                                           marker_obj, sort_key=sort_key,
-                                          sort_dir=sort_dir)
+                                          sort_dir=sort_dir, filters=filters)
 
         return RequestHeaderCollection.convert_with_links(requestheaders, limit,
                                                      url=resource_url,
@@ -162,3 +164,22 @@ class RequestHeadersController(rest.RestController):
         # pecan.response.location = link.build_url('functions',
         #                                          function.id)
         return RequestHeader.convert_with_links(requestheader)
+
+    @expose.expose(RequestHeaderCollection, types.uuid_or_name)
+    def get_one(self, request_ident):
+        """Retrieve information about the given bay.
+
+        :param nodepool_ident: ID of a nodepool or logical name of the nodepool.
+        """
+
+        return self._get_requestheaders_collection(marker=None, limit=None, sort_key='id',
+                                                   sort_dir='asc', id=request_ident)
+
+    @expose.expose(None, types.uuid_or_name, status_code=204)
+    def delete(self, request_ident):
+        """Delete a HttpApi.
+
+        :param httpapi_ident: ID of a httpapi
+        """
+        request_header = api_utils.get_resource('RequestHeader', request_ident)
+        request_header.destroy()

@@ -38,6 +38,7 @@ class Connection(object):
     def __init__(self):
         """Constructor."""
 
+    ############## EndPoint APIs ################
     @abc.abstractmethod
     def get_endpoint_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
@@ -81,6 +82,7 @@ class Connection(object):
         :returns: A endpoint.
         """
 
+    ################ HttpApi APIs #################
     @abc.abstractmethod
     def get_httpapi_by_id(self, context, httpapi_id):
         """Return a httpapi."""
@@ -97,10 +99,16 @@ class Connection(object):
     def get_httpapi_list(self, context):
         """Get matching http apis."""
 
+    ########### Request APIs ###########
     @abc.abstractmethod
     def create_request(self, values):
         """Create a new Request."""
 
+    @abc.abstractmethod
+    def get_request_by_id(self, context, httpapi_id):
+        """Get matching request."""
+
+    ############# Request Header APIs ##############
     @abc.abstractmethod
     def create_request_header(self, values):
         """Create a new Request Header."""
@@ -109,6 +117,15 @@ class Connection(object):
     def get_request_header_list(self, context):
         """Get matching http apis."""
 
+    @abc.abstractmethod
+    def get_request_header_by_id(self, context, httpapi_id):
+        """Return a httpapi."""
+
+    @abc.abstractmethod
+    def destroy_request_header(self, id):
+        """Delete httpapi"""
+
+    ################# Responses APIs######################
     @abc.abstractmethod
     def create_response(self, values):
         """Create a new Response."""
@@ -129,6 +146,7 @@ class Connection(object):
     def create_response_message(self, values):
         """Create a new Response Message."""
 
+    ##############Function APIs #############
     @abc.abstractmethod
     def get_function_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
@@ -201,6 +219,7 @@ class Connection(object):
         :raises: BayNotFound
         """
 
+    #######NodePool Policy APIs#########
     @abc.abstractmethod
     def create_nodepool_policy(self, values):
         """Create a new nodepool policy."""
@@ -226,6 +245,7 @@ class Connection(object):
     def get_nodepool_policy_by_name(self, context, policy_name):
         """Return a policy."""
 
+    ############# NodePool APIs###############
     @abc.abstractmethod
     def get_nodepool_list(self, context, filters=None, limit=None,
                      marker=None, sort_key=None, sort_dir=None):
