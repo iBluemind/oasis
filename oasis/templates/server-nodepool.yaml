@@ -10,7 +10,7 @@ parameters:
   flavor:
     type: string
     description: Flavor used for servers
-    default: m1.heat
+    default: m1.small
     constraints:
     - custom_constraint: nova.flavor
   image:
