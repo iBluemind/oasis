@@ -354,6 +354,6 @@ class FunctionsController(rest.RestController):
         policy.enforce(context, 'function:delete', function,
                        action='function:delete')
         function.destroy()
-        pecan.request.agent_rpcapi.function_delete(function)
+        pecan.request.agent_rpcapi.function_delete(function.nodepool_id, function_ident)
 
 
