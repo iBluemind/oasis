@@ -38,7 +38,7 @@ template_def_opts = [
                   'on Ubuntu.')),
 ]
 
-CONF.register_opts(template_def_opts, group='conductor')
+CONF.register_opts(template_def_opts)
 
 
 class ParameterMapping(object):
