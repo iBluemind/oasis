@@ -294,8 +294,14 @@ class FunctionsController(rest.RestController):
             request_headers[i].name = c.name
             request_headers[i].id = c.id
 
+        endpoint_url = ''
+        if endpoint.url[0] == '/':
+            endpoint_url = endpoint.url
+        else:
+            endpoint_url = '/%s' % endpoint.url
+
         # have to add function_id, rule, httpapi header(methods)
-        pecan.request.agent_rpcapi.function_create(function_dict['nodepool_id'], function.id, '/' + endpoint.url, function_dict['body'], httpapi_methods)
+        pecan.request.agent_rpcapi.function_create(function_dict['nodepool_id'], function.id, endpoint_url, function_dict['body'], httpapi_methods)
         #test: pecan.request.agent_rpcapi.function_create("1234", "1111222", "/ddd", function_dict['body'], ["GET", ])
 
 
@@ -340,7 +346,34 @@ class FunctionsController(rest.RestController):
         function.save()
         # validate_function_properties(delta)
 
-        # res_function = pecan.request.agent_rpcapi.function_update(function)
+        endpoint = api_utils.get_resource('Endpoint', function.endpoint_id)
+        httpapis_filters = {'endpoint_id': endpoint.id}
+        httpapis = objects.HttpApi.list(context, filters=httpapis_filters)
+        httpapi_methods = []
+        httpapi_ids = []
+
+        for i, c in enumerate(httpapis):
+
+            httpapi_methods.append(c.method)
+            httpapi_ids.append(c.id)
+
+        request = api_utils.get_resource('Request', httpapi_ids[0])
+        filters = {'request_id': request.id}
+        request_headers = objects.RequestHeader.list(context, filters=filters)
+
+        for i, c in enumerate(request_headers):
+            request_headers[i].value = c.value
+            request_headers[i].name = c.name
+            request_headers[i].id = c.id
+
+        endpoint_url = ''
+        if endpoint.url[0] == '/':
+            endpoint_url = endpoint.url
+        else:
+            endpoint_url = '/%s' % endpoint.url
+
+        pecan.request.agent_rpcapi.function_create(function.nodepool_id, function.id, endpoint.url, function.body, httpapi_methods)
+
         return Function.convert_with_links(function)
 
     @expose.expose(None, types.uuid_or_name, status_code=204)
