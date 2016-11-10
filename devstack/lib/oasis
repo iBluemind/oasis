@@ -34,7 +34,7 @@ OASIS_REPO=${OASIS_REPO:-https://github.com/samgoon/oasis.git}
 OASIS_BRANCH=${OASIS_BRANCH:-master}
 OASIS_DIR=$DEST/oasis
 
-GITREPO["python-oasisclient"]=${OASISCLIENT_REPO:-${GIT_BASE}/openstack/python-oasisclient.git}
+GITREPO["python-oasisclient"]=${OASISCLIENT_REPO:-https://github.com/samgoon/python-oasisclient.git}
 GITBRANCH["python-oasisclient"]=${OASISCLIENT_BRANCH:-master}
 GITDIR["python-oasisclient"]=$DEST/python-oasisclient
 
