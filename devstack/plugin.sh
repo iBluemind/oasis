@@ -12,8 +12,8 @@ if is_service_enabled o-api o-cond; then
     if [[ "$1" == "stack" && "$2" == "install" ]]; then
         echo_summary "Installing oasis"
         install_oasis
-#        LIBS_FROM_GIT="${LIBS_FROM_GIT},python-oasisclient"
-#        install_oasisclient
+        LIBS_FROM_GIT="${LIBS_FROM_GIT},python-oasisclient"
+        install_oasisclient
         cleanup_oasis
     elif [[ "$1" == "stack" && "$2" == "post-config" ]]; then
         echo_summary "Configuring oasis"
