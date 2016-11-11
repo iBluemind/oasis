@@ -21,7 +21,7 @@ parameters:
     - custom_constraint: glance.image
   lb_port:
     type: number
-    default: 80
+    default:8888
     description: Port used by the load balancer
   private_network:
     type: string

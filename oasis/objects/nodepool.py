@@ -32,7 +32,7 @@ class NodePool(base.OasisPersistentObject, base.OasisObject,
     dbapi = dbapi.get_instance()
 
     fields = {
-        'id': fields.StringField(),
+        'id': fields.UUIDField(),
         'project_id': fields.StringField(nullable=True),
         'user_id': fields.StringField(nullable=True),
         'stack_id': fields.StringField(nullable=True),

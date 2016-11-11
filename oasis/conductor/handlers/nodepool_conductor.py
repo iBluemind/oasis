@@ -119,7 +119,7 @@ class Handler(object):
     def _create_trustee_and_trust(osc, nodepool):
         password = utils.generate_password(length=18)
         trustee = osc.keystone().create_trustee(
-            nodepool.uuid,
+            nodepool.id,
             password,
             CONF.trust.trustee_domain_id)
         nodepool.trustee_username = trustee.name
@@ -138,7 +138,7 @@ class Handler(object):
         LOG.debug('nodepool_create')
         osc = clients.OpenStackClients(context)
 
-        nodepool.uuid = uuid.uuid4()
+        nodepool.id = uuid.uuid4()
         self._create_trustee_and_trust(osc, nodepool)
         try:
             created_stack = _create_stack(context, osc, nodepool,
