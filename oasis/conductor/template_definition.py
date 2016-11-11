@@ -243,6 +243,10 @@ class NodePoolTemplateDefinition(BaseTemplateDefinition):
         extra_params['scaledown_evaluation_periods'] = nodepool_policy.scaledown_evaluation_periods
         extra_params['scaledown_threshold'] = nodepool_policy.scaledown_threshold
 
+        extra_params['nodepool_id'] = nodepool.id
+        extra_params['amqp_host'] = cfg.CONF.oslo_messaging_rabbit.rabbit_host
+        extra_params['amqp_password'] = cfg.CONF.oslo_messaging_rabbit.rabbit_password
+        extra_params['amqp_userid'] = cfg.CONF.oslo_messaging_rabbit.rabbit_userid
 
         return super(NodePoolTemplateDefinition,
                      self).get_params(context, nodepool, nodepool_policy,

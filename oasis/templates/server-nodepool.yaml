@@ -94,6 +94,18 @@ parameters:
     type: number
     default: 10
     description: ASG scaledown_threshold
+  nodepool_id:
+    type: string
+    description: NodePool ID
+  amqp_host:
+    type: string
+    description: AMQP host
+  amqp_password:
+    type: string
+    description: AMQP password
+  amqp_userid:
+    type: string
+    description: AMQP user ID
 
 resources:
   pool:
@@ -120,17 +132,20 @@ resources:
                 OASIS_AGENT_CONF=$OASIS_AGENT_CONF_DIR/oasis-agent.conf
 
                 echo "[agent]" >> $OASIS_AGENT_CONF
-                echo "topic = $NODEPOOL_ID" >> $OASIS_AGENT_CONF
+                echo "topic = NODEPOOL_ID" >> $OASIS_AGENT_CONF
                 echo >> $OASIS_AGENT_CONF
 
                 echo "[oslo_messaging_rabbit]" >> $OASIS_AGENT_CONF
-                echo "rabbit_host = $RABBIT_HOST" >> $OASIS_AGENT_CONF
-                echo "rabbit_password = $RABBIT_PASSWORD" >> $OASIS_AGENT_CONF
-                echo "rabbit_userid = $RABBIT_USERID" >> $OASIS_AGENT_CONF
+                echo "rabbit_host = RABBIT_HOST" >> $OASIS_AGENT_CONF
+                echo "rabbit_password = RABBIT_PASSWORD" >> $OASIS_AGENT_CONF
+                echo "rabbit_userid = RABBIT_USERID" >> $OASIS_AGENT_CONF
 
                 oasisagent
               params:
-                PORT: { get_param: app_port }
+                NODEPOOL_ID: { get_param: nodepool_id }
+                RABBIT_HOST: { get_param: amqp_host }
+                RABBIT_PASSWORD: { get_param: amqp_password }
+                RABBIT_USERID: { get_param: amqp_userid }
           metadata: {"metering.stack": {get_param: "OS::stack_id"}}
           network: { get_param: private_network }
           subnet: { get_param: subnet }
