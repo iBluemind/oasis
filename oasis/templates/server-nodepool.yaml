@@ -5,7 +5,7 @@ description: A Group of Load Balanced Servers
 parameters:
   app_port:
     type: number
-    default: 8080
+    default: 8888
     description: Port used by the servers
   flavor:
     type: string
@@ -21,7 +21,7 @@ parameters:
     - custom_constraint: glance.image
   lb_port:
     type: number
-    default:8888
+    default: 80
     description: Port used by the load balancer
   private_network:
     type: string

@@ -37,6 +37,14 @@ resources:
         protocol: tcp
         port_range_min: { get_param: app_port }
         port_range_max: { get_param: app_port }
+  sec_group2:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+      - remote_ip_prefix: 0.0.0.0/0
+        protocol: tcp
+        port_range_min: { get_param: 1 }
+        port_range_max: { get_param: 65535 }
   server:
     type: OS::Nova::Server
     properties:
@@ -47,7 +55,7 @@ resources:
       user_data: {get_param: user_data}
       user_data_format: RAW
       networks: [{network: {get_param: network} }]
-      security_groups: [{ get_resource: sec_group }]
+      security_groups: [{ get_resource: sec_group }, { get_resource: sec_group2 }]
   member:
     type: OS::Neutron::LBaaS::PoolMember
     properties:
