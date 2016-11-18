@@ -20,6 +20,7 @@ Add this repo as an external repository into your ``local.conf`` file::
 
     [[local|localrc]]
     enable_plugin oasis https://github.com/samgoon/oasis
+    enable_plugin oasis-dashboard https://github.com/samgoon/oasis-dashboard
     enable_service o-api
     enable_service o-cond
                          
