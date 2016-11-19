@@ -21,6 +21,7 @@ from oslo_service import service
 
 from oasis.common import rpc
 from oasis.objects import base as objects_base
+from oasis.conductor import template_definition
 # from oasis.service import periodic
 # from oasis.servicegroup import oasis_service_periodic as servicegroup
 

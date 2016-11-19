@@ -246,6 +246,10 @@ class NodePoolPoliciesController(rest.RestController):
         context = pecan.request.context
         nodepool_policy_dict = nodepool_policy.as_dict()
 
+        print 'aaaaaa'
+        print context.project_id
+        print context.user_id
+        print 'aaaaaaa'
         nodepool_policy_dict['project_id'] = context.project_id
         nodepool_policy_dict['user_id'] = context.user_id
 

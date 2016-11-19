@@ -126,6 +126,9 @@ class Handler(object):
         nodepool.trustee_user_id = trustee.id
         nodepool.trustee_password = password
         trust = osc.keystone().create_trust(trustee.id)
+        print '-------------------'
+        print trust.id
+        print '------------------'
         nodepool.trust_id = trust.id
 
     @staticmethod
